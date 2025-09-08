@@ -6,8 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
-import { ok } from "assert"
-
 export default function PlaygroundPage() {
   const [progressValue, setProgressValue] = React.useState(50)
 
@@ -61,4 +59,4 @@ export default function PlaygroundPage() {
       </div>
     </div>
   )
-}ok
+}
