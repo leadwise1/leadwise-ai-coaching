@@ -39,6 +39,7 @@ export async function POST(request: Request) {
 
     const summary =
       data.choices?.[0]?.message?.content ||
+      data.choices?.[0]?.text ||
       "Sorry, I couldn’t generate a summary.";
 
     return NextResponse.json({ summary });

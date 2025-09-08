@@ -1,11 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Progress } from "@/components/ui/progress"
+import { Badge } from "@/app/api/grok/components/ui/badge"
+import { Button } from "@/app/api/grok/components/ui/button"
+import { Card } from "@/app/api/grok/components/ui/card"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/app/api/grok/components/ui/tabs"
+import { Progress } from "@/app/api/grok/components/ui/progress"
 export default function PlaygroundPage() {
   const [progressValue, setProgressValue] = React.useState(50)
 
