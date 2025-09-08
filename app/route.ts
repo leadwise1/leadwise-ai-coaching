@@ -19,18 +19,19 @@ export async function POST(request: Request) {
         Authorization: `Bearer ${process.env.XAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "grok-2-latest",
+        model: "grok-4-latest",
         messages: [
           {
             role: "system",
-            content:
-              "You are an expert career coach and resume writer. Generate a concise, compelling resume summary (3-4 sentences).",
+            content: "You are an expert career coach and resume writer.",
           },
           {
             role: "user",
             content: `User Profile:\n${userProfile}\n\nJob Description:\n${jobDescription}`,
           },
         ],
+        stream: false,
+        temperature: 0,
       }),
     });
 
