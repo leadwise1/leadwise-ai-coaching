@@ -1,34 +1,36 @@
 'use client'
 
-import Spline from "@splinetool/react-spline"
-import { Card } from "@/components/ui/card"
-import { Spotlight } from "@/components/ui/Spotlight"
+import { Card } from '@/components/ui/card'
+import Lottie from 'react-lottie-player'
+import animationData from '@/public/ai-animation.json'
+import { Sparkles } from 'lucide-react'
 
 export function SplineSceneBasic() {
   return (
-    <Card className="w-full h-[500px] bg-black/[0.96] relative overflow-hidden">
-      <Spotlight
-        className="-top-40 left-0 md:left-60 md:-top-20"
-        fill="white"
-      />
-      <div className="flex h-full">
-        {/* Left content */}
-        <div className="flex-1 p-8 relative z-10 flex flex-col justify-center">
-          <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400">
-            Interactive 3D
-          </h1>
-          <p className="mt-4 text-neutral-300 max-w-lg">
-            Bring your UI to life with beautiful 3D scenes. Create immersive experiences 
-            that capture attention and enhance your design.
-          </p>
-        </div>
+    <Card className="w-full h-[500px] relative overflow-hidden bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center">
+      {/* Optional subtle background overlay */}
+      <div className="absolute inset-0 opacity-20 bg-gradient-to-tr from-primary to-primary/20"></div>
 
-        {/* Right content */}
-        <div className="flex-1 relative">
-          <Spline 
-            scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-            className="w-full h-full"
-          />
+      {/* Lottie AI animation */}
+      <Lottie
+        loop
+        animationData={animationData}
+        play
+        className="w-full h-full object-contain relative z-10"
+      />
+
+      {/* Overlay headline */}
+      <div className="absolute z-20 text-center px-6">
+        <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
+          Empowering Individuals
+        </h1>
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          Using AI to remove barriers and amplify impact for nonprofits and small businesses.
+        </p>
+        <div className="mt-6 flex justify-center">
+          <button className="bg-primary text-primary-foreground px-6 py-3 rounded-md font-semibold hover:bg-primary/90 flex items-center gap-2">
+            <Sparkles className="w-5 h-5" /> Get Started
+          </button>
         </div>
       </div>
     </Card>

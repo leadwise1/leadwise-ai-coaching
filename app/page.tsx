@@ -353,8 +353,49 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* Spline Scene */}
-      <SplineSceneBasic />
+      {/* Canva Embed */}
+      <div className="flex justify-center px-4">
+        <div
+          style={{
+            position: 'relative',
+            width: '100%',
+            maxWidth: '900px',
+            paddingTop: '56.25%',
+            boxShadow: '0 2px 8px 0 rgba(63,69,81,0.16)',
+            marginTop: '1.6em',
+            marginBottom: '0.9em',
+            overflow: 'hidden',
+            borderRadius: '8px',
+            willChange: 'transform',
+          }}
+        >
+          <iframe
+            loading="lazy"
+            style={{
+              position: 'absolute',
+              width: '100%',
+              height: '100%',
+              top: 0,
+              left: 0,
+              border: 'none',
+              padding: 0,
+              margin: 0,
+            }}
+            src="https://www.canva.com/design/DAGyel97HJg/OV98OiQ-ADDQ_jxn45jsHg/view?embed"
+            allowFullScreen
+          />
+        </div>
+      </div>
+      <p className="text-center text-sm text-muted-foreground mt-2">
+        <a 
+          href="https://www.canva.com/design/DAGyel97HJg/OV98OiQ-ADDQ_jxn45jsHg/view?utm_content=DAGyel97HJg&utm_campaign=designshare&utm_medium=embeds&utm_source=link"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline hover:text-primary"
+        >
+          Design
+        </a> by Fareeda Lakhani
+      </p>
 
       {/* Hero Section */}
       <section className="py-20 md:py-32 bg-gradient-to-br from-blue-50 via-white to-purple-50">
