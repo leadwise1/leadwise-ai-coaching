@@ -2,8 +2,8 @@
 
 import { Card } from '@/components/ui/card'
 import Lottie from 'react-lottie-player'
-import animationData from '@/public/ai-animation.json'
 import { Sparkles } from 'lucide-react'
+import { use } from 'react'
 
 export function SplineSceneBasic() {
   return (
@@ -14,8 +14,8 @@ export function SplineSceneBasic() {
       {/* Lottie AI animation */}
       <Lottie
         loop
-        animationData={animationData}
         play
+        animationData={require('/ai-animation.json')} // pulls from /public/ai-animation.json
         className="w-full h-full object-contain relative z-10"
       />
 

@@ -29,9 +29,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { Spotlight } from '@/components/ui/Spotlight'
 import { cn } from '@/lib/utils'
-import { SplineSceneBasic } from '@/components/ui/SplineSceneBasic'
+import AIAnimation from '@/components/ui/animations/AIAnimation'
 
 interface ResumeData {
   personalInfo: {
@@ -215,7 +214,7 @@ export default function HomePage() {
                       <div className="flex items-center justify-between mb-2">
                         <Label htmlFor="summary">Professional Summary</Label>
                         <Button 
-                          variant="outline" 
+                          variant="outline"
                           size="sm"
                           onClick={() => handleAIGenerate('summary')}
                           disabled={isAIGenerating}
@@ -332,7 +331,7 @@ export default function HomePage() {
 
             <div className="hidden md:flex items-center space-x-4">
               <Button variant="ghost">Sign In</Button>
-              <Button 
+              <Button
                 onClick={() => setShowBuilder(true)}
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
@@ -342,8 +341,8 @@ export default function HomePage() {
 
             {/* Mobile menu button */}
             <Button 
-              variant="ghost" 
-              size="sm" 
+              variant="ghost"
+              size="sm"
               className="md:hidden"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
@@ -353,49 +352,10 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* Canva Embed */}
-      <div className="flex justify-center px-4">
-        <div
-          style={{
-            position: 'relative',
-            width: '100%',
-            maxWidth: '900px',
-            paddingTop: '56.25%',
-            boxShadow: '0 2px 8px 0 rgba(63,69,81,0.16)',
-            marginTop: '1.6em',
-            marginBottom: '0.9em',
-            overflow: 'hidden',
-            borderRadius: '8px',
-            willChange: 'transform',
-          }}
-        >
-          <iframe
-            loading="lazy"
-            style={{
-              position: 'absolute',
-              width: '100%',
-              height: '100%',
-              top: 0,
-              left: 0,
-              border: 'none',
-              padding: 0,
-              margin: 0,
-            }}
-            src="https://www.canva.com/design/DAGyel97HJg/OV98OiQ-ADDQ_jxn45jsHg/view?embed"
-            allowFullScreen
-          />
-        </div>
+      {/* AI Animation Section */}
+      <div className="flex justify-center px-4 mt-8 mb-4">
+        <AIAnimation />
       </div>
-      <p className="text-center text-sm text-muted-foreground mt-2">
-        <a 
-          href="https://www.canva.com/design/DAGyel97HJg/OV98OiQ-ADDQ_jxn45jsHg/view?utm_content=DAGyel97HJg&utm_campaign=designshare&utm_medium=embeds&utm_source=link"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline hover:text-primary"
-        >
-          Design
-        </a> by Fareeda Lakhani
-      </p>
 
       {/* Hero Section */}
       <section className="py-20 md:py-32 bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -420,7 +380,7 @@ export default function HomePage() {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               <Button 
-                size="lg" 
+                size="lg"
                 onClick={() => setShowBuilder(true)}
                 className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-4 text-lg"
               >
