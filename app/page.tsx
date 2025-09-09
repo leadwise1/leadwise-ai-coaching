@@ -1,17 +1,37 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  User,
+  FileText,
+  Sparkles,
+  Download,
+  Eye,
+  Settings,
+  PlusCircle,
+  Briefcase,
+  GraduationCap,
+  ArrowRight,
+  Check,
+  Star,
+  Users,
+  Zap,
+  Shield,
+  Globe,
+  ChevronDown,
+  Menu,
+  X,
+} from 'lucide-react'
+
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { 
-  User, FileText, Sparkles, Download, Eye, Settings, PlusCircle, 
-  Briefcase, GraduationCap, ArrowRight, Check, Star, Users, 
-  Zap, Shield, Globe, ChevronDown, Menu, X 
-} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Spotlight } from '@/components/ui/Spotlight'
+import { cn } from '@/lib/utils'
+import { SplineSceneBasic } from '@/components/ui/SplineSceneBasic'
 
 interface ResumeData {
   personalInfo: {
@@ -81,7 +101,7 @@ export default function HomePage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <Button 
-                  variant="ghost" 
+                  variant="ghost"
                   onClick={() => setShowBuilder(false)}
                   className="mr-2"
                 >
@@ -332,6 +352,9 @@ export default function HomePage() {
           </div>
         </div>
       </nav>
+
+      {/* Spline Scene */}
+      <SplineSceneBasic />
 
       {/* Hero Section */}
       <section className="py-20 md:py-32 bg-gradient-to-br from-blue-50 via-white to-purple-50">
