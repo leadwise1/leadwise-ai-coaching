@@ -1,62 +1,37 @@
 "use client"
 
 import * as React from "react"
-import { Badge } from "@/app/api/grok/components/ui/badge"
-import { Button } from "@/app/api/grok/components/ui/button"
-import { Card } from "@/app/api/grok/components/ui/card"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/app/api/grok/components/ui/tabs"
-import { Progress } from "@/app/api/grok/components/ui/progress"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { SplineSceneBasic } from "@/components/ui/SplineSceneBasic"
+
 export default function PlaygroundPage() {
-  const [progressValue, setProgressValue] = React.useState(50)
-
   return (
-    <div className="p-8 space-y-8">
-      <h1 className="text-3xl font-bold">LeadWise AI Playground</h1>
-
-      {/* Badge */}
-      <div>
-        <h2 className="text-xl font-semibold mb-2">Badge</h2>
-        <Badge>New</Badge>
-      </div>
-
-      {/* Button */}
-      <div>
-        <h2 className="text-xl font-semibold mb-2">Button</h2>
-        <Button onClick={() => setProgressValue(prev => Math.min(prev + 10, 100))}>
-          Increase Progress
-        </Button>
-      </div>
-
-      {/* Card */}
-      <div>
-        <h2 className="text-xl font-semibold mb-2">Card</h2>
-        <Card className="p-4 border rounded-md shadow-sm">
-          <h3 className="font-bold">Card Title</h3>
-          <p className="text-sm text-muted-foreground">
-            This is a sample card using your UI components.
+    <div className="space-y-16">
+      {/* Hero Section */}
+      <section className="relative h-[600px] w-full flex items-center justify-center bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
+        <SplineSceneBasic /> {/* 3D scene in hero */}
+        <div className="absolute z-10 text-center text-white px-4">
+          <h1 className="text-5xl font-bold mb-4">LeadWise AI Playground</h1>
+          <p className="text-xl mb-6 max-w-xl mx-auto">
+            Experience AI-powered career guidance like never before.
           </p>
-        </Card>
-      </div>
+          <Button size="lg">Get Started</Button>
+        </div>
+      </section>
 
-      {/* Tabs */}
-      <div>
-        <h2 className="text-xl font-semibold mb-2">Tabs</h2>
-        <Tabs defaultValue="tab1" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="tab1">Tab 1</TabsTrigger>
-            <TabsTrigger value="tab2">Tab 2</TabsTrigger>
-          </TabsList>
-          <TabsContent value="tab1">Content for Tab 1</TabsContent>
-          <TabsContent value="tab2">Content for Tab 2</TabsContent>
-        </Tabs>
-      </div>
+      {/* Example UI Components */}
+      <section className="px-8 space-y-8">
+        <div>
+          <h2 className="text-3xl font-bold mb-2">Badge</h2>
+          <Badge>New</Badge>
+        </div>
 
-      {/* Progress */}
-      <div>
-        <h2 className="text-xl font-semibold mb-2">Progress</h2>
-        <Progress value={progressValue} />
-        <p className="text-sm mt-2">Current Progress: {progressValue}%</p>
-      </div>
+        <div>
+          <h2 className="text-3xl font-bold mb-2">Button</h2>
+          <Button size="lg">Click me</Button>
+        </div>
+      </section>
     </div>
   )
 }
