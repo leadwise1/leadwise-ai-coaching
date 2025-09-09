@@ -411,6 +411,56 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* --- New Section: Highlight Section --- */}
+      <section className="py-20 bg-gradient-to-r from-indigo-50 to-purple-50">
+        <div className="container mx-auto px-6">
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Discover More Features
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              Explore tools and insights to maximize your resume's impact and stand out to employers.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Example Card 1 */}
+            <Card className="p-6 hover:shadow-lg transition-all duration-300">
+              <div className="p-3 bg-blue-100 rounded-lg w-fit mb-4">
+                <Sparkles className="h-6 w-6 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">AI-Powered Insights</h3>
+              <p className="text-sm text-muted-foreground">
+                Get smart suggestions to improve your content and optimize for ATS systems.
+              </p>
+            </Card>
+
+            {/* Example Card 2 */}
+            <Card className="p-6 hover:shadow-lg transition-all duration-300">
+              <div className="p-3 bg-green-100 rounded-lg w-fit mb-4">
+                <FileText className="h-6 w-6 text-green-600" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Custom Templates</h3>
+              <p className="text-sm text-muted-foreground">
+                Choose from modern templates tailored for professional industries.
+              </p>
+            </Card>
+
+            {/* Example Card 3 */}
+            <Card className="p-6 hover:shadow-lg transition-all duration-300">
+              <div className="p-3 bg-purple-100 rounded-lg w-fit mb-4">
+                <Zap className="h-6 w-6 text-purple-600" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Real-Time Preview</h3>
+              <p className="text-sm text-muted-foreground">
+                Instantly see how updates and edits change your resume's appearance.
+              </p>
+            </Card>
+          </div>
+        </div>
+      </section>
+      {/* --- End Highlight Section --- */}
+
       {/* Features Section */}
       <section id="features" className="py-20 bg-background">
         <div className="container mx-auto px-6">
