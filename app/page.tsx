@@ -1,37 +1,36 @@
 'use client'
 
 import React, { useState } from 'react'
-import { 
-  User, FileText, Sparkles, Download, Eye, Settings, 
+import { User, FileText, Sparkles, Download, Eye, Settings, 
   Briefcase, GraduationCap, ArrowRight 
 } from 'lucide-react'
+import AIAnimation from "@/components/ui/animations/AIAnimation";
 
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Card } from '@/components/ui/card'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-
-// Remove this import if AIAnimation doesn't exist
-// import AIAnimation from '@/components/ui/animations/AIAnimation'
+// Basic interfaces
+interface PersonalInfo {
+  name: string
+  email: string
+  phone: string
+  location: string
+  summary: string
+}
 
 interface ResumeData {
-  personalInfo: {
-    name: string
-    email: string
-    phone: string
-    location: string
-    summary: string
-  }
-  experience: Array<{ id: string; company: string; position: string; duration: string; description: string }>
-  education: Array<{ id: string; school: string; degree: string; year: string }>
+  personalInfo: PersonalInfo
+  experience: any[]
+  education: any[]
   skills: string[]
 }
 
 export default function HomePage() {
   const [resumeData, setResumeData] = useState<ResumeData>({
-    personalInfo: { name: '', email: '', phone: '', location: '', summary: '' },
+    personalInfo: { 
+      name: '', 
+      email: '', 
+      phone: '', 
+      location: '', 
+      summary: '' 
+    },
     experience: [],
     education: [],
     skills: []
@@ -40,131 +39,190 @@ export default function HomePage() {
   const [isAIGenerating, setIsAIGenerating] = useState(false)
   const [showBuilder, setShowBuilder] = useState(false)
 
-  const handleAIGenerate = async (type: 'summary' | 'skills' | 'description') => {
+  const handleAIGenerate = () => {
     setIsAIGenerating(true)
     setTimeout(() => {
-      if (type === 'summary') {
-        setResumeData(prev => ({
-          ...prev,
-          personalInfo: {
-            ...prev.personalInfo,
-            summary: "Experienced professional with a proven track record of delivering exceptional results..."
-          }
-        }))
-      }
+      setResumeData(prev => ({
+        ...prev,
+        personalInfo: {
+          ...prev.personalInfo,
+          summary: "Experienced professional with a proven track record of delivering exceptional results and innovative problem-solving skills."
+        }
+      }))
       setIsAIGenerating(false)
     }, 2000)
   }
 
-  // -------------------- Builder View --------------------
+  const updatePersonalInfo = (field: keyof PersonalInfo, value: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      personalInfo: {
+        ...prev.personalInfo,
+        [field]: value
+      }
+    }))
+  }
+
+  // Builder View
   if (showBuilder) {
     return (
       <div className="min-h-screen bg-background">
+        {/* Header */}
         <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-          <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-            <Button variant="ghost" onClick={() => setShowBuilder(false)}>← Back to Home</Button>
+          <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+            <button 
+              onClick={() => setShowBuilder(false)}
+              className="text-muted-foreground hover:text-foreground flex items-center gap-2 transition-colors"
+            >
+              ← Back to Home
+            </button>
             <div className="flex items-center gap-3">
-              {/* Fixed Badge - removed variant or use "secondary" */}
-              <Badge variant="secondary">
-                <Sparkles className="h-3 w-3 mr-1"/>AI Powered
-              </Badge>
-              <Button variant="outline" size="sm">
-                <Eye className="h-4 w-4 mr-2"/>Preview
-              </Button>
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                <Download className="h-4 w-4 mr-2"/>Export PDF
-              </Button>
+              <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm border border-primary/20 flex items-center gap-1">
+                <Sparkles className="h-4 w-4"/>
+                AI Powered
+              </span>
+              <button className="border border-border px-4 py-2 rounded-md hover:bg-accent transition-colors flex items-center gap-2">
+                <Eye className="h-4 w-4"/>
+                Preview
+              </button>
+              <button className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors flex items-center gap-2">
+                <Download className="h-4 w-4"/>
+                Export PDF
+              </button>
             </div>
           </div>
         </header>
 
-        <div className="container mx-auto px-6 py-8 grid lg:grid-cols-3 gap-8">
-          {/* Left Form */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-card rounded-lg border p-6">
-              <Tabs value={currentStep} onValueChange={setCurrentStep}>
-                <TabsList className="grid grid-cols-4 w-full mb-6">
-                  <TabsTrigger value="personal"><User className="h-4 w-4 mr-2"/>Personal</TabsTrigger>
-                  <TabsTrigger value="experience"><Briefcase className="h-4 w-4 mr-2"/>Experience</TabsTrigger>
-                  <TabsTrigger value="education"><GraduationCap className="h-4 w-4 mr-2"/>Education</TabsTrigger>
-                  <TabsTrigger value="skills"><Settings className="h-4 w-4 mr-2"/>Skills</TabsTrigger>
-                </TabsList>
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-4 py-8 grid lg:grid-cols-3 gap-8">
+          {/* Form Section */}
+          <div className="lg:col-span-2">
+            <div className="bg-card rounded-lg shadow-sm border border-border p-6">
+              {/* Tab Navigation */}
+              <div className="flex border-b border-border mb-6">
+                {[
+                  { id: 'personal', label: 'Personal', icon: User },
+                  { id: 'experience', label: 'Experience', icon: Briefcase },
+                  { id: 'education', label: 'Education', icon: GraduationCap },
+                  { id: 'skills', label: 'Skills', icon: Settings }
+                ].map(({ id, label, icon: Icon }) => (
+                  <button 
+                    key={id}
+                    onClick={() => setCurrentStep(id)}
+                    className={`px-4 py-2 border-b-2 flex items-center gap-2 transition-colors ${
+                      currentStep === id 
+                        ? 'border-primary text-primary' 
+                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4"/>
+                    {label}
+                  </button>
+                ))}
+              </div>
 
-                <TabsContent value="personal" className="space-y-4">
+              {/* Personal Info Tab */}
+              {currentStep === 'personal' && (
+                <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="name">Full Name</Label>
-                      <Input id="name" placeholder="John Doe" value={resumeData.personalInfo.name} onChange={e => setResumeData(prev => ({...prev, personalInfo: {...prev.personalInfo, name: e.target.value}}))}/>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Full Name
+                      </label>
+                      <input 
+                        type="text"
+                        placeholder="John Doe"
+                        value={resumeData.personalInfo.name}
+                        onChange={(e) => updatePersonalInfo('name', e.target.value)}
+                        className="w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-foreground placeholder:text-muted-foreground"
+                      />
                     </div>
                     <div>
-                      <Label htmlFor="email">Email</Label>
-                      <Input id="email" type="email" placeholder="john@example.com" value={resumeData.personalInfo.email} onChange={e => setResumeData(prev => ({...prev, personalInfo: {...prev.personalInfo, email: e.target.value}}))}/>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Email
+                      </label>
+                      <input 
+                        type="email"
+                        placeholder="john@example.com"
+                        value={resumeData.personalInfo.email}
+                        onChange={(e) => updatePersonalInfo('email', e.target.value)}
+                        className="w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-foreground placeholder:text-muted-foreground"
+                      />
                     </div>
                   </div>
+                  
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <Label htmlFor="summary">Professional Summary</Label>
-                      <Button variant="outline" size="sm" onClick={() => handleAIGenerate('summary')} disabled={isAIGenerating}>
-                        <Sparkles className="h-3 w-3 mr-1"/>{isAIGenerating ? 'Generating...' : 'AI Generate'}
-                      </Button>
+                      <label className="block text-sm font-medium text-foreground">
+                        Professional Summary
+                      </label>
+                      <button 
+                        onClick={handleAIGenerate}
+                        disabled={isAIGenerating}
+                        className="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700 disabled:opacity-50 flex items-center gap-1 transition-colors"
+                      >
+                        <Sparkles className="h-3 w-3"/>
+                        {isAIGenerating ? 'Generating...' : 'AI Generate'}
+                      </button>
                     </div>
                     <textarea 
-                      id="summary" 
-                      className="w-full min-h-[120px] p-3 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" 
                       placeholder="Write a brief summary of your professional experience..."
-                      value={resumeData.personalInfo.summary} 
-                      onChange={e => setResumeData(prev => ({...prev, personalInfo: {...prev.personalInfo, summary: e.target.value}}))}
+                      value={resumeData.personalInfo.summary}
+                      onChange={(e) => updatePersonalInfo('summary', e.target.value)}
+                      rows={4}
+                      className="w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-foreground placeholder:text-muted-foreground resize-none"
                     />
                   </div>
+
                   <div className="flex justify-end">
-                    <Button onClick={() => setCurrentStep('experience')} className="bg-primary text-primary-foreground hover:bg-primary/90">
-                      Next: Experience <ArrowRight className="ml-2 h-4 w-4"/>
-                    </Button>
+                    <button 
+                      onClick={() => setCurrentStep('experience')}
+                      className="bg-primary text-primary-foreground px-6 py-2 rounded-md hover:bg-primary/90 transition-colors flex items-center gap-2"
+                    >
+                      Next: Experience 
+                      <ArrowRight className="h-4 w-4"/>
+                    </button>
                   </div>
-                </TabsContent>
+                </div>
+              )}
 
-                <TabsContent value="experience" className="space-y-4">
-                  <div className="text-center py-8 border-2 border-dashed rounded-lg">
-                    <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-4"/>
-                    <p className="text-muted-foreground mb-4">Add your work experience</p>
-                    <Button variant="outline">Add Experience</Button>
+              {/* Other tabs placeholder */}
+              {currentStep !== 'personal' && (
+                <div className="text-center py-12">
+                  <div className="text-muted-foreground mb-4">
+                    {currentStep === 'experience' && <Briefcase className="h-16 w-16 mx-auto"/>}
+                    {currentStep === 'education' && <GraduationCap className="h-16 w-16 mx-auto"/>}
+                    {currentStep === 'skills' && <Settings className="h-16 w-16 mx-auto"/>}
                   </div>
-                </TabsContent>
-
-                <TabsContent value="education" className="space-y-4">
-                  <div className="text-center py-8 border-2 border-dashed rounded-lg">
-                    <GraduationCap className="h-12 w-12 text-muted-foreground mx-auto mb-4"/>
-                    <p className="text-muted-foreground mb-4">Add your education</p>
-                    <Button variant="outline">Add Education</Button>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="skills" className="space-y-4">
-                  <div className="text-center py-8 border-2 border-dashed rounded-lg">
-                    <Settings className="h-12 w-12 text-muted-foreground mx-auto mb-4"/>
-                    <p className="text-muted-foreground mb-4">Add your skills</p>
-                    <Button variant="outline">Add Skills</Button>
-                  </div>
-                </TabsContent>
-              </Tabs>
+                  <p className="text-muted-foreground mb-4">
+                    Add your {currentStep}
+                  </p>
+                  <button className="border border-border px-4 py-2 rounded-md hover:bg-accent transition-colors">
+                    Add {currentStep.charAt(0).toUpperCase() + currentStep.slice(1)}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Right Live Preview */}
+          {/* Preview Section */}
           <div className="space-y-6">
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4 flex items-center"><Eye className="h-5 w-5 mr-2"/>Live Preview</h3>
-              <div className="bg-muted rounded-lg p-4 min-h-[400px] border-2 border-dashed">
+            <div className="bg-card rounded-lg shadow-sm border border-border p-6">
+              <h3 className="text-lg font-semibold mb-4 flex items-center text-card-foreground">
+                <Eye className="h-5 w-5 mr-2"/>
+                Live Preview
+              </h3>
+              <div className="bg-muted rounded-lg p-4 min-h-96 border-2 border-dashed border-border">
                 {resumeData.personalInfo.name ? (
                   <div className="space-y-4">
-                    <div className="text-center border-b pb-4">
-                      <h2 className="text-xl font-bold">{resumeData.personalInfo.name}</h2>
+                    <div className="text-center border-b border-border pb-4">
+                      <h2 className="text-xl font-bold text-card-foreground">{resumeData.personalInfo.name}</h2>
                       <p className="text-sm text-muted-foreground">{resumeData.personalInfo.email}</p>
                     </div>
                     {resumeData.personalInfo.summary && (
                       <div>
-                        <h3 className="font-semibold mb-2">Summary</h3>
-                        <p className="text-sm">{resumeData.personalInfo.summary}</p>
+                        <h3 className="font-semibold mb-2 text-card-foreground">Summary</h3>
+                        <p className="text-sm text-muted-foreground">{resumeData.personalInfo.summary}</p>
                       </div>
                     )}
                   </div>
@@ -175,66 +233,79 @@ export default function HomePage() {
                   </div>
                 )}
               </div>
-            </Card>
+            </div>
           </div>
         </div>
       </div>
     )
   }
 
-  // -------------------- Public Page View --------------------
+  // Landing Page
   return (
-    <>
+    <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="border-b bg-background/95 sticky top-0 z-50">
-        <div className="container mx-auto px-6 flex justify-between h-16 items-center">
+      <nav className="border-b border-border bg-background/95 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 flex justify-between h-16 items-center">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary rounded-lg">
               <Sparkles className="h-6 w-6 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold">ResumeAI</span>
+            <span className="text-xl font-bold text-foreground">ResumeAI</span>
           </div>
 
           <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => setShowBuilder(true)}>
+            <button 
+              onClick={() => setShowBuilder(true)}
+              className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
+            >
               Start Building
-            </Button>
+            </button>
           </div>
         </div>
       </nav>
 
+      {/* Hero Animation */}
+      <div className="flex justify-center mt-12 mb-12">
+        <AIAnimation width="100%" height="400px" />
+      </div>
+
       {/* Hero Section */}
-      <div className="container mx-auto px-6 py-16 text-center">
-        <h1 className="text-4xl font-bold mb-6">Build Your Perfect Resume with AI</h1>
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center">
+        <h1 className="text-5xl font-bold mb-6 text-foreground">
+          Build Your Perfect Resume with AI
+        </h1>
         <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
           Create professional, ATS-optimized resumes in minutes with our AI-powered resume builder.
         </p>
-        <Button size="lg" onClick={() => setShowBuilder(true)} className="bg-primary text-primary-foreground hover:bg-primary/90">
-          <Sparkles className="h-5 w-5 mr-2"/>
+        <button 
+          onClick={() => setShowBuilder(true)}
+          className="bg-primary text-primary-foreground px-8 py-4 rounded-md text-lg hover:bg-primary/90 transition-colors flex items-center gap-2 mx-auto"
+        >
+          <Sparkles className="h-5 w-5"/>
           Get Started Free
-        </Button>
+        </button>
       </div>
 
       {/* Features Section */}
-      <div className="container mx-auto px-6 py-16">
+      <div className="max-w-6xl mx-auto px-4 py-16">
         <div className="grid md:grid-cols-3 gap-8">
-          <Card className="p-6 text-center">
+          <div className="bg-card p-8 rounded-lg shadow-sm border border-border text-center">
             <Sparkles className="h-12 w-12 text-primary mx-auto mb-4"/>
-            <h3 className="text-xl font-semibold mb-2">AI-Powered Content</h3>
+            <h3 className="text-xl font-semibold mb-3 text-card-foreground">AI-Powered Content</h3>
             <p className="text-muted-foreground">Let AI write compelling summaries and descriptions for your resume.</p>
-          </Card>
-          <Card className="p-6 text-center">
+          </div>
+          <div className="bg-card p-8 rounded-lg shadow-sm border border-border text-center">
             <Eye className="h-12 w-12 text-primary mx-auto mb-4"/>
-            <h3 className="text-xl font-semibold mb-2">Live Preview</h3>
+            <h3 className="text-xl font-semibold mb-3 text-card-foreground">Live Preview</h3>
             <p className="text-muted-foreground">See your resume update in real-time as you make changes.</p>
-          </Card>
-          <Card className="p-6 text-center">
+          </div>
+          <div className="bg-card p-8 rounded-lg shadow-sm border border-border text-center">
             <Download className="h-12 w-12 text-primary mx-auto mb-4"/>
-            <h3 className="text-xl font-semibold mb-2">Export Ready</h3>
+            <h3 className="text-xl font-semibold mb-3 text-card-foreground">Export Ready</h3>
             <p className="text-muted-foreground">Download your resume as a professional PDF when you're done.</p>
-          </Card>
+          </div>
         </div>
       </div>
-    </>
+    </div>
   )
 }
