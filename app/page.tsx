@@ -1,10 +1,11 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { User, FileText, Sparkles, Download, Eye, Settings, 
   Briefcase, GraduationCap, ArrowRight 
 } from 'lucide-react'
 import AIAnimation from "@/components/ui/animations/AIAnimation";
+import { motion, useMotionValue, useTransform } from "framer-motion";
 
 // Basic interfaces
 interface PersonalInfo {
@@ -61,6 +62,61 @@ export default function HomePage() {
         [field]: value
       }
     }))
+  }
+
+  // Upgraded 3D Parallax AI Robot Animation Component
+  const ParallaxAIAnimation = () => {
+    const containerRef = useRef<HTMLDivElement>(null)
+    const mouseX = useMotionValue(0)
+    const mouseY = useMotionValue(0)
+
+    // Map mouseX and mouseY to rotation angles for 3D effect
+    const rotateX = useTransform(mouseY, [-150, 150], [30, -30])
+    const rotateY = useTransform(mouseX, [-150, 150], [-30, 30])
+    const scale = useTransform(mouseX, [-150, 150], [1.05, 0.95])
+
+    const handleMouseMove = (event: React.MouseEvent) => {
+      if (!containerRef.current) return
+
+      const rect = containerRef.current.getBoundingClientRect()
+      const x = event.clientX - rect.left - rect.width / 2
+      const y = event.clientY - rect.top - rect.height / 2
+
+      mouseX.set(x)
+      mouseY.set(y)
+    }
+
+    const handleMouseLeave = () => {
+      mouseX.set(0)
+      mouseY.set(0)
+    }
+
+    return (
+      <motion.div
+        ref={containerRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        style={{
+          rotateX,
+          rotateY,
+          scale,
+          perspective: 900,
+          width: '100%',
+          height: 420,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginTop: '3rem',
+          marginBottom: '3rem',
+          cursor: 'grab',
+          transformStyle: 'preserve-3d',
+          willChange: 'transform',
+        }}
+        className="rounded-lg shadow-lg bg-card"
+      >
+        <AIAnimation width="320px" height="320px" />
+      </motion.div>
+    )
   }
 
   // Builder View
@@ -264,10 +320,8 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* Hero Animation */}
-      <div className="flex justify-center mt-12 mb-12">
-        <AIAnimation width="100%" height="400px" />
-      </div>
+      {/* Upgraded 3D Parallax AI Robot Animation */}
+      <ParallaxAIAnimation />
 
       {/* Hero Section */}
       <div className="max-w-4xl mx-auto px-4 py-16 text-center">
