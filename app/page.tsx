@@ -178,6 +178,66 @@ const ComprehensiveCareerCoach = () => {
     coaching: false,
     analytics: false,
   });
+  // 2. AI output state
+  const [aiOutput, setAiOutput] = useState<string>('');
+
+  // 3. AI API interaction
+  const handleAIAction = async (feature: string) => {
+    // Choose endpoint and payload based on feature
+    let endpoint = '/api/vertex';
+    let payload: any = {};
+    // Sample payloads for demonstration
+    switch (feature) {
+      case 'resume':
+        endpoint = '/api/vertex';
+        payload = {
+          action: 'generate_resume',
+          user: 'Jane Doe',
+          jobDescription: 'Senior Frontend Engineer at TechCorp. React, TypeScript, UX.',
+        };
+        break;
+      case 'interview':
+        endpoint = '/api/grok';
+        payload = {
+          action: 'interview_simulation',
+          user: 'Jane Doe',
+          role: 'Senior Frontend Engineer',
+        };
+        break;
+      case 'coaching':
+        endpoint = '/api/vertex';
+        payload = {
+          action: 'career_coaching',
+          user: 'Jane Doe',
+          goal: 'Become a Staff Engineer in 2 years',
+        };
+        break;
+      case 'analytics':
+        endpoint = '/api/vertex';
+        payload = {
+          action: 'career_analytics',
+          user: 'Jane Doe',
+          history: ['Applied to TechCorp', 'Interviewed at DataSoft'],
+        };
+        break;
+      default:
+        endpoint = '/api/vertex';
+        payload = { action: 'unknown' };
+    }
+    setAiOutput(''); // Clear previous output
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error('AI request failed');
+      const data = await res.json();
+      setAiOutput(data.output || JSON.stringify(data));
+    } catch (err: any) {
+      setAiOutput('Error: ' + (err.message || 'AI request failed'));
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
@@ -264,6 +324,7 @@ const ComprehensiveCareerCoach = () => {
               onClick={() => {
                 setAiFeatures(prev => ({ ...prev, resume: !prev.resume }));
                 setActiveFeature('resume');
+                handleAIAction('resume');
               }}
               onMouseEnter={() => setActiveFeature('resume')}
               onMouseLeave={() => setActiveFeature(null)}
@@ -294,6 +355,7 @@ const ComprehensiveCareerCoach = () => {
               onClick={() => {
                 setAiFeatures(prev => ({ ...prev, analytics: !prev.analytics }));
                 setActiveFeature('analytics');
+                handleAIAction('analytics');
               }}
               onMouseEnter={() => setActiveFeature('analytics')}
               onMouseLeave={() => setActiveFeature(null)}
@@ -324,6 +386,7 @@ const ComprehensiveCareerCoach = () => {
               onClick={() => {
                 setAiFeatures(prev => ({ ...prev, coaching: !prev.coaching }));
                 setActiveFeature('coaching');
+                handleAIAction('coaching');
               }}
               onMouseEnter={() => setActiveFeature('coaching')}
               onMouseLeave={() => setActiveFeature(null)}
@@ -354,6 +417,7 @@ const ComprehensiveCareerCoach = () => {
               onClick={() => {
                 setAiFeatures(prev => ({ ...prev, interview: !prev.interview }));
                 setActiveFeature('interview');
+                handleAIAction('interview');
               }}
               onMouseEnter={() => setActiveFeature('interview')}
               onMouseLeave={() => setActiveFeature(null)}
@@ -370,6 +434,14 @@ const ComprehensiveCareerCoach = () => {
             </button>
           </motion.div>
         </div>
+
+        {/* AI Output display */}
+        {aiOutput && (
+          <div className="my-8 mx-auto max-w-2xl bg-white border border-blue-100 rounded-lg shadow p-6">
+            <h4 className="font-semibold mb-2 text-blue-700">AI Response:</h4>
+            <pre className="whitespace-pre-wrap text-gray-800">{aiOutput}</pre>
+          </div>
+        )}
 
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8">
           <div className="grid md:grid-cols-2 gap-8 items-center">
@@ -437,6 +509,7 @@ const ComprehensiveCareerCoach = () => {
                   onClick={() => {
                     setAiFeatures(prev => ({ ...prev, coaching: !prev.coaching }));
                     setActiveFeature('coaching');
+                    handleAIAction('coaching');
                   }}
                   onMouseEnter={() => setActiveFeature('coaching')}
                   onMouseLeave={() => setActiveFeature(null)}
@@ -466,6 +539,7 @@ const ComprehensiveCareerCoach = () => {
                   onClick={() => {
                     setAiFeatures(prev => ({ ...prev, resume: !prev.resume }));
                     setActiveFeature('resume');
+                    handleAIAction('resume');
                   }}
                   onMouseEnter={() => setActiveFeature('resume')}
                   onMouseLeave={() => setActiveFeature(null)}
@@ -495,6 +569,7 @@ const ComprehensiveCareerCoach = () => {
                   onClick={() => {
                     setAiFeatures(prev => ({ ...prev, analytics: !prev.analytics }));
                     setActiveFeature('analytics');
+                    handleAIAction('analytics');
                   }}
                   onMouseEnter={() => setActiveFeature('analytics')}
                   onMouseLeave={() => setActiveFeature(null)}
@@ -524,6 +599,7 @@ const ComprehensiveCareerCoach = () => {
                   onClick={() => {
                     setAiFeatures(prev => ({ ...prev, interview: !prev.interview }));
                     setActiveFeature('interview');
+                    handleAIAction('interview');
                   }}
                   onMouseEnter={() => setActiveFeature('interview')}
                   onMouseLeave={() => setActiveFeature(null)}
