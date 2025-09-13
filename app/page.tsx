@@ -33,107 +33,143 @@ declare global {
     }
 }
 
-// 3D Parallax Cursor Component
-const ParallaxCursor = () => {
-    const mountRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        let animationFrameId: number;
-        let renderer: any;
-
-        const initializeCanvas = () => {
-          if (!mountRef.current || typeof window.THREE === 'undefined') return;
-          const THREE = window.THREE;
-
-          const scene = new THREE.Scene();
-          const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-          renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-          renderer.setSize(window.innerWidth, window.innerHeight);
-          renderer.setPixelRatio(window.devicePixelRatio);
-          mountRef.current.appendChild(renderer.domElement);
-          
-          let plane: any;
-
-          const textureLoader = new THREE.TextureLoader();
-          textureLoader.load('ai.jpg', 
-            (texture: any) => {
-                const geometry = new THREE.PlaneGeometry(0.7, 0.7);
-                const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, alphaTest: 0.1 });
-                plane = new THREE.Mesh(geometry, material);
-                scene.add(plane);
-            },
-            undefined, 
-            (err: any) => { 
-                console.error('An error occurred loading the texture.', err);
-            }
-          );
-
-          camera.position.z = 2;
-
-          const mouse = new THREE.Vector2();
-          const targetPosition = new THREE.Vector3();
-
-          const onMouseMove = (event: MouseEvent) => {
-              mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-              mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-              const vector = new THREE.Vector3(mouse.x, mouse.y, 0.5);
-              vector.unproject(camera);
-              const dir = vector.sub(camera.position).normalize();
-              const distance = -camera.position.z / dir.z;
-              targetPosition.copy(camera.position).add(dir.multiplyScalar(distance));
-          };
-          window.addEventListener('mousemove', onMouseMove);
-
-          const animate = () => {
-              animationFrameId = requestAnimationFrame(animate);
-
-              if (plane) {
-                plane.position.x += (targetPosition.x - plane.position.x) * 0.05;
-                plane.position.y += (targetPosition.y - plane.position.y) * 0.05;
-
-                plane.rotation.x = -plane.position.y * 0.2;
-                plane.rotation.y = plane.position.x * 0.2;
-              }
-
-              renderer.render(scene, camera);
-          };
-          animate();
-
-          const onWindowResize = () => {
-              camera.aspect = window.innerWidth / window.innerHeight;
-              camera.updateProjectionMatrix();
-              renderer.setSize(window.innerWidth, window.innerHeight);
-          }
-          window.addEventListener('resize', onWindowResize);
-          
-          return () => {
-              window.removeEventListener('mousemove', onMouseMove);
-              window.removeEventListener('resize', onWindowResize);
-          };
+// 3D Parallax Cursor Component with AI feature interactivity
+const ParallaxCursor = ({
+  activeFeature,
+  onFeatureHover,
+}: {
+  activeFeature: string | null;
+  onFeatureHover: (feature: string | null) => void;
+}) => {
+  const mountRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    let animationFrameId: number;
+    let renderer: any;
+    let featureColor = "#ffffff";
+    // Map features to colors for visual feedback
+    const featureColors: Record<string, string> = {
+      resume: "#2563eb", // blue-600
+      interview: "#a21caf", // purple-700
+      coaching: "#22c55e", // green-500
+      analytics: "#eab308", // yellow-500
+    };
+    const initializeCanvas = () => {
+      if (!mountRef.current || typeof window.THREE === "undefined") return;
+      const THREE = window.THREE;
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      );
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      mountRef.current.appendChild(renderer.domElement);
+      let plane: any;
+      const textureLoader = new THREE.TextureLoader();
+      textureLoader.load(
+        "/image/ai.jpg",
+        (texture: any) => {
+          const geometry = new THREE.PlaneGeometry(0.7, 0.7);
+          const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true,
+            alphaTest: 0.1,
+            color: featureColor,
+          });
+          plane = new THREE.Mesh(geometry, material);
+          scene.add(plane);
+        },
+        undefined,
+        (err: any) => {
+          console.error("An error occurred loading the texture.", err);
         }
-
-        const cleanup = initializeCanvas();
-
-        return () => {
-            cancelAnimationFrame(animationFrameId);
-            if (cleanup) cleanup();
-            if (mountRef.current && renderer?.domElement) {
-                mountRef.current.removeChild(renderer.domElement);
-            }
-        };
-    }, []);
-
-    return <div ref={mountRef} style={{ position: 'fixed', top: 0, left: 0, zIndex: 9999, pointerEvents: 'none' }} />;
+      );
+      camera.position.z = 2;
+      const mouse = new THREE.Vector2();
+      const targetPosition = new THREE.Vector3();
+      const onMouseMove = (event: MouseEvent) => {
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        const vector = new THREE.Vector3(mouse.x, mouse.y, 0.5);
+        vector.unproject(camera);
+        const dir = vector.sub(camera.position).normalize();
+        const distance = -camera.position.z / dir.z;
+        targetPosition.copy(camera.position).add(dir.multiplyScalar(distance));
+      };
+      window.addEventListener("mousemove", onMouseMove);
+      const animate = () => {
+        animationFrameId = requestAnimationFrame(animate);
+        if (plane) {
+          // Set color based on activeFeature
+          if (activeFeature && featureColors[activeFeature]) {
+            plane.material.color.set(featureColors[activeFeature]);
+          } else {
+            plane.material.color.set("#ffffff");
+          }
+          plane.position.x += (targetPosition.x - plane.position.x) * 0.05;
+          plane.position.y += (targetPosition.y - plane.position.y) * 0.05;
+          plane.rotation.x = -plane.position.y * 0.2;
+          plane.rotation.y = plane.position.x * 0.2;
+        }
+        renderer.render(scene, camera);
+      };
+      animate();
+      const onWindowResize = () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      };
+      window.addEventListener("resize", onWindowResize);
+      return () => {
+        window.removeEventListener("mousemove", onMouseMove);
+        window.removeEventListener("resize", onWindowResize);
+      };
+    };
+    const cleanup = initializeCanvas();
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      if (cleanup) cleanup();
+      if (mountRef.current && renderer?.domElement) {
+        mountRef.current.removeChild(renderer.domElement);
+      }
+    };
+    // Only re-run when activeFeature changes
+    // eslint-disable-next-line
+  }, [activeFeature]);
+  // Optionally, listen for hover events on the buttons from parent via onFeatureHover
+  return (
+    <div
+      ref={mountRef}
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        zIndex: 9999,
+        pointerEvents: "none",
+      }}
+    />
+  );
 };
 
 
 const ComprehensiveCareerCoach = () => {
-  const [activeTab, setActiveTab] = useState('overview')
+  const [activeTab, setActiveTab] = useState('overview');
+  // 1. AI Feature state
+  const [activeFeature, setActiveFeature] = useState<string | null>(null);
+  const [aiFeatures, setAiFeatures] = useState({
+    resume: false,
+    interview: false,
+    coaching: false,
+    analytics: false,
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
-      <ParallaxCursor />
+      {/* 2. ParallaxCursor with AI interactivity */}
+      <ParallaxCursor activeFeature={activeFeature} onFeatureHover={setActiveFeature} />
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
         <div className="absolute inset-0">
@@ -201,13 +237,26 @@ const ComprehensiveCareerCoach = () => {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+          {/* Resume Feature Button */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             viewport={{ once: true }}
           >
-            <div className="h-full hover:shadow-lg transition-shadow duration-300 bg-white p-6 rounded-lg border">
+            <button
+              className={`h-full w-full hover:shadow-lg transition-shadow duration-300 bg-white p-6 rounded-lg border focus:outline-none ${
+                aiFeatures.resume ? "ring-2 ring-blue-500" : ""
+              }`}
+              onClick={() => {
+                setAiFeatures(prev => ({ ...prev, resume: !prev.resume }));
+                setActiveFeature('resume');
+              }}
+              onMouseEnter={() => setActiveFeature('resume')}
+              onMouseLeave={() => setActiveFeature(null)}
+              aria-pressed={aiFeatures.resume}
+              type="button"
+            >
               <div className="text-center">
                 <div className="mb-4 flex justify-center">
                   <FileText className="w-8 h-8 text-blue-600" />
@@ -215,16 +264,29 @@ const ComprehensiveCareerCoach = () => {
                 <h3 className="text-xl font-semibold mb-3">Narrative Storytelling</h3>
                 <p className="text-gray-600">Transform your experience into compelling stories that resonate with hiring managers</p>
               </div>
-            </div>
+            </button>
           </motion.div>
 
+          {/* Analytics Feature Button */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
             viewport={{ once: true }}
           >
-            <div className="h-full hover:shadow-lg transition-shadow duration-300 bg-white p-6 rounded-lg border">
+            <button
+              className={`h-full w-full hover:shadow-lg transition-shadow duration-300 bg-white p-6 rounded-lg border focus:outline-none ${
+                aiFeatures.analytics ? "ring-2 ring-yellow-500" : ""
+              }`}
+              onClick={() => {
+                setAiFeatures(prev => ({ ...prev, analytics: !prev.analytics }));
+                setActiveFeature('analytics');
+              }}
+              onMouseEnter={() => setActiveFeature('analytics')}
+              onMouseLeave={() => setActiveFeature(null)}
+              aria-pressed={aiFeatures.analytics}
+              type="button"
+            >
               <div className="text-center">
                 <div className="mb-4 flex justify-center">
                   <BarChart3 className="w-8 h-8 text-green-600" />
@@ -232,16 +294,29 @@ const ComprehensiveCareerCoach = () => {
                 <h3 className="text-xl font-semibold mb-3">Quantifiable Achievements</h3>
                 <p className="text-gray-600">AI coaching to identify and articulate measurable impact in your previous roles</p>
               </div>
-            </div>
+            </button>
           </motion.div>
 
+          {/* Coaching Feature Button */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
             viewport={{ once: true }}
           >
-            <div className="h-full hover:shadow-lg transition-shadow duration-300 bg-white p-6 rounded-lg border">
+            <button
+              className={`h-full w-full hover:shadow-lg transition-shadow duration-300 bg-white p-6 rounded-lg border focus:outline-none ${
+                aiFeatures.coaching ? "ring-2 ring-green-500" : ""
+              }`}
+              onClick={() => {
+                setAiFeatures(prev => ({ ...prev, coaching: !prev.coaching }));
+                setActiveFeature('coaching');
+              }}
+              onMouseEnter={() => setActiveFeature('coaching')}
+              onMouseLeave={() => setActiveFeature(null)}
+              aria-pressed={aiFeatures.coaching}
+              type="button"
+            >
               <div className="text-center">
                 <div className="mb-4 flex justify-center">
                   <Target className="w-8 h-8 text-purple-600" />
@@ -249,16 +324,29 @@ const ComprehensiveCareerCoach = () => {
                 <h3 className="text-xl font-semibold mb-3">Industry Customization</h3>
                 <p className="text-gray-600">Tailored content that speaks the language of your target industry and role</p>
               </div>
-            </div>
+            </button>
           </motion.div>
 
+          {/* Interview Feature Button */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
             viewport={{ once: true }}
           >
-            <div className="h-full hover:shadow-lg transition-shadow duration-300 bg-white p-6 rounded-lg border">
+            <button
+              className={`h-full w-full hover:shadow-lg transition-shadow duration-300 bg-white p-6 rounded-lg border focus:outline-none ${
+                aiFeatures.interview ? "ring-2 ring-purple-700" : ""
+              }`}
+              onClick={() => {
+                setAiFeatures(prev => ({ ...prev, interview: !prev.interview }));
+                setActiveFeature('interview');
+              }}
+              onMouseEnter={() => setActiveFeature('interview')}
+              onMouseLeave={() => setActiveFeature(null)}
+              aria-pressed={aiFeatures.interview}
+              type="button"
+            >
               <div className="text-center">
                 <div className="mb-4 flex justify-center">
                   <Shield className="w-8 h-8 text-orange-600" />
@@ -266,7 +354,7 @@ const ComprehensiveCareerCoach = () => {
                 <h3 className="text-xl font-semibold mb-3">Bias Detection</h3>
                 <p className="text-gray-600">Advanced algorithms ensure your applications are free from unconscious bias</p>
               </div>
-            </div>
+            </button>
           </motion.div>
         </div>
 
@@ -321,6 +409,7 @@ const ComprehensiveCareerCoach = () => {
 
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
+              {/* Coaching Feature Button */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
@@ -328,15 +417,28 @@ const ComprehensiveCareerCoach = () => {
                 viewport={{ once: true }}
                 className="flex gap-4"
               >
-                <div className="flex-shrink-0 p-3 bg-white rounded-lg shadow-sm">
+                <button
+                  className={`flex-shrink-0 p-3 bg-white rounded-lg shadow-sm focus:outline-none ${
+                    aiFeatures.coaching ? "ring-2 ring-green-500" : ""
+                  }`}
+                  onClick={() => {
+                    setAiFeatures(prev => ({ ...prev, coaching: !prev.coaching }));
+                    setActiveFeature('coaching');
+                  }}
+                  onMouseEnter={() => setActiveFeature('coaching')}
+                  onMouseLeave={() => setActiveFeature(null)}
+                  aria-pressed={aiFeatures.coaching}
+                  type="button"
+                >
                   <TrendingUp className="w-6 h-6 text-blue-600" />
-                </div>
+                </button>
                 <div>
                   <h3 className="text-xl font-semibold mb-2">Predictive Career Pathing</h3>
                   <p className="text-gray-600">AI analyzes market trends to suggest optimal career moves and skill development priorities</p>
                 </div>
               </motion.div>
 
+              {/* Resume Feature Button */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
@@ -344,15 +446,28 @@ const ComprehensiveCareerCoach = () => {
                 viewport={{ once: true }}
                 className="flex gap-4"
               >
-                <div className="flex-shrink-0 p-3 bg-white rounded-lg shadow-sm">
+                <button
+                  className={`flex-shrink-0 p-3 bg-white rounded-lg shadow-sm focus:outline-none ${
+                    aiFeatures.resume ? "ring-2 ring-blue-500" : ""
+                  }`}
+                  onClick={() => {
+                    setAiFeatures(prev => ({ ...prev, resume: !prev.resume }));
+                    setActiveFeature('resume');
+                  }}
+                  onMouseEnter={() => setActiveFeature('resume')}
+                  onMouseLeave={() => setActiveFeature(null)}
+                  aria-pressed={aiFeatures.resume}
+                  type="button"
+                >
                   <Briefcase className="w-6 h-6 text-green-600" />
-                </div>
+                </button>
                 <div>
                   <h3 className="text-xl font-semibold mb-2">End-to-End Application Management</h3>
                   <p className="text-gray-600">Track applications, follow-ups, and interview schedules in one intelligent dashboard</p>
                 </div>
               </motion.div>
 
+              {/* Analytics Feature Button */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
@@ -360,15 +475,28 @@ const ComprehensiveCareerCoach = () => {
                 viewport={{ once: true }}
                 className="flex gap-4"
               >
-                <div className="flex-shrink-0 p-3 bg-white rounded-lg shadow-sm">
+                <button
+                  className={`flex-shrink-0 p-3 bg-white rounded-lg shadow-sm focus:outline-none ${
+                    aiFeatures.analytics ? "ring-2 ring-yellow-500" : ""
+                  }`}
+                  onClick={() => {
+                    setAiFeatures(prev => ({ ...prev, analytics: !prev.analytics }));
+                    setActiveFeature('analytics');
+                  }}
+                  onMouseEnter={() => setActiveFeature('analytics')}
+                  onMouseLeave={() => setActiveFeature(null)}
+                  aria-pressed={aiFeatures.analytics}
+                  type="button"
+                >
                   <GraduationCap className="w-6 h-6 text-purple-600" />
-                </div>
+                </button>
                 <div>
                   <h3 className="text-xl font-semibold mb-2">Skill Mapping & Learning Plans</h3>
                   <p className="text-gray-600">Personalized learning roadmaps based on your career goals and market demands</p>
                 </div>
               </motion.div>
 
+              {/* Interview Feature Button */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
@@ -376,9 +504,21 @@ const ComprehensiveCareerCoach = () => {
                 viewport={{ once: true }}
                 className="flex gap-4"
               >
-                <div className="flex-shrink-0 p-3 bg-white rounded-lg shadow-sm">
+                <button
+                  className={`flex-shrink-0 p-3 bg-white rounded-lg shadow-sm focus:outline-none ${
+                    aiFeatures.interview ? "ring-2 ring-purple-700" : ""
+                  }`}
+                  onClick={() => {
+                    setAiFeatures(prev => ({ ...prev, interview: !prev.interview }));
+                    setActiveFeature('interview');
+                  }}
+                  onMouseEnter={() => setActiveFeature('interview')}
+                  onMouseLeave={() => setActiveFeature(null)}
+                  aria-pressed={aiFeatures.interview}
+                  type="button"
+                >
                   <Video className="w-6 h-6 text-orange-600" />
-                </div>
+                </button>
                 <div>
                   <h3 className="text-xl font-semibold mb-2">AI/VR Interview Simulation</h3>
                   <p className="text-gray-600">Practice with realistic interview scenarios and get instant feedback on your performance</p>
