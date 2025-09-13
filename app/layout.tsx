@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import Script from 'next/script';
 
 const fontSans = Inter({
   subsets: ["latin"],
@@ -25,7 +26,11 @@ export default function RootLayout({
           "min-h-screen bg-background font-sans antialiased",
           fontSans.variable
         )}
-      >{children}</body>
+      >
+        {/* Added Three.js for the 3D parallax effect */}
+        <Script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" strategy="beforeInteractive" />
+        {children}
+      </body>
     </html>
   );
 }

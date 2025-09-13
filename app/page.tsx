@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { 
@@ -26,11 +26,114 @@ import {
   Download
 } from 'lucide-react'
 
+// Declaration for Three.js when loaded from a CDN
+declare global {
+    interface Window {
+        THREE: any;
+    }
+}
+
+// 3D Parallax Cursor Component
+const ParallaxCursor = () => {
+    const mountRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        let animationFrameId: number;
+        let renderer: any;
+
+        const initializeCanvas = () => {
+          if (!mountRef.current || typeof window.THREE === 'undefined') return;
+          const THREE = window.THREE;
+
+          const scene = new THREE.Scene();
+          const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+          renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+          renderer.setSize(window.innerWidth, window.innerHeight);
+          renderer.setPixelRatio(window.devicePixelRatio);
+          mountRef.current.appendChild(renderer.domElement);
+          
+          let plane: any;
+
+          const textureLoader = new THREE.TextureLoader();
+          textureLoader.load('ai.jpg', 
+            (texture: any) => {
+                const geometry = new THREE.PlaneGeometry(0.7, 0.7);
+                const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, alphaTest: 0.1 });
+                plane = new THREE.Mesh(geometry, material);
+                scene.add(plane);
+            },
+            undefined, 
+            (err: any) => { 
+                console.error('An error occurred loading the texture.', err);
+            }
+          );
+
+          camera.position.z = 2;
+
+          const mouse = new THREE.Vector2();
+          const targetPosition = new THREE.Vector3();
+
+          const onMouseMove = (event: MouseEvent) => {
+              mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+              mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+              const vector = new THREE.Vector3(mouse.x, mouse.y, 0.5);
+              vector.unproject(camera);
+              const dir = vector.sub(camera.position).normalize();
+              const distance = -camera.position.z / dir.z;
+              targetPosition.copy(camera.position).add(dir.multiplyScalar(distance));
+          };
+          window.addEventListener('mousemove', onMouseMove);
+
+          const animate = () => {
+              animationFrameId = requestAnimationFrame(animate);
+
+              if (plane) {
+                plane.position.x += (targetPosition.x - plane.position.x) * 0.05;
+                plane.position.y += (targetPosition.y - plane.position.y) * 0.05;
+
+                plane.rotation.x = -plane.position.y * 0.2;
+                plane.rotation.y = plane.position.x * 0.2;
+              }
+
+              renderer.render(scene, camera);
+          };
+          animate();
+
+          const onWindowResize = () => {
+              camera.aspect = window.innerWidth / window.innerHeight;
+              camera.updateProjectionMatrix();
+              renderer.setSize(window.innerWidth, window.innerHeight);
+          }
+          window.addEventListener('resize', onWindowResize);
+          
+          return () => {
+              window.removeEventListener('mousemove', onMouseMove);
+              window.removeEventListener('resize', onWindowResize);
+          };
+        }
+
+        const cleanup = initializeCanvas();
+
+        return () => {
+            cancelAnimationFrame(animationFrameId);
+            if (cleanup) cleanup();
+            if (mountRef.current && renderer?.domElement) {
+                mountRef.current.removeChild(renderer.domElement);
+            }
+        };
+    }, []);
+
+    return <div ref={mountRef} style={{ position: 'fixed', top: 0, left: 0, zIndex: 9999, pointerEvents: 'none' }} />;
+};
+
+
 const ComprehensiveCareerCoach = () => {
   const [activeTab, setActiveTab] = useState('overview')
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+      <ParallaxCursor />
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
         <div className="absolute inset-0">
