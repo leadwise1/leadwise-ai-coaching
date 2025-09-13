@@ -26,14 +26,11 @@ import {
   Download
 } from 'lucide-react'
 
-// Declaration for Three.js when loaded from a CDN
-declare global {
-    interface Window {
-        THREE: any;
-    }
-}
+import * as THREE from 'three';
+import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader';
 
-// 3D Parallax Cursor Component with AI feature interactivity
+
+// 3D Parallax Cursor Component with SVGLoader
 const ParallaxCursor = ({
   activeFeature,
   onFeatureHover,
@@ -45,17 +42,17 @@ const ParallaxCursor = ({
   useEffect(() => {
     let animationFrameId: number;
     let renderer: any;
+    let plane: any;
     let featureColor = "#ffffff";
-    // Map features to colors for visual feedback
     const featureColors: Record<string, string> = {
-      resume: "#2563eb", // blue-600
-      interview: "#a21caf", // purple-700
-      coaching: "#22c55e", // green-500
-      analytics: "#eab308", // yellow-500
+      resume: "#2563eb",
+      interview: "#a21caf",
+      coaching: "#22c55e",
+      analytics: "#eab308",
     };
+
     const initializeCanvas = () => {
-      if (!mountRef.current || typeof window.THREE === "undefined") return;
-      const THREE = window.THREE;
+      if (!mountRef.current) return;
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(
         75,
@@ -67,29 +64,38 @@ const ParallaxCursor = ({
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setPixelRatio(window.devicePixelRatio);
       mountRef.current.appendChild(renderer.domElement);
-      let plane: any;
-      const textureLoader = new THREE.TextureLoader();
-      textureLoader.load(
-        "/image/ai.jpg",
-        (texture: any) => {
-          const geometry = new THREE.PlaneGeometry(0.7, 0.7);
-          const material = new THREE.MeshBasicMaterial({
-            map: texture,
-            transparent: true,
-            alphaTest: 0.1,
-            color: featureColor,
+
+      // Load SVG
+      const loader = new SVGLoader();
+      loader.load(
+        "/image/ai.svg",
+        (data) => {
+          const paths = data.paths;
+          const material = new THREE.MeshBasicMaterial({ color: featureColor, side: THREE.DoubleSide });
+          const group = new THREE.Group();
+
+          paths.forEach((path) => {
+            const shapes = path.toShapes(true);
+            shapes.forEach((shape) => {
+              const geometry = new THREE.ShapeGeometry(shape);
+              const mesh = new THREE.Mesh(geometry, material);
+              group.add(mesh);
+            });
           });
-          plane = new THREE.Mesh(geometry, material);
-          scene.add(plane);
+
+          group.scale.set(0.01, 0.01, 0.01);
+          group.position.set(0, 0, 0);
+          scene.add(group);
+          plane = group;
         },
         undefined,
-        (err: any) => {
-          console.error("An error occurred loading the texture.", err);
-        }
+        (err) => console.error("Error loading SVG:", err)
       );
+
       camera.position.z = 2;
       const mouse = new THREE.Vector2();
       const targetPosition = new THREE.Vector3();
+
       const onMouseMove = (event: MouseEvent) => {
         mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
         mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -99,15 +105,20 @@ const ParallaxCursor = ({
         const distance = -camera.position.z / dir.z;
         targetPosition.copy(camera.position).add(dir.multiplyScalar(distance));
       };
+
       window.addEventListener("mousemove", onMouseMove);
+
       const animate = () => {
         animationFrameId = requestAnimationFrame(animate);
         if (plane) {
-          // Set color based on activeFeature
           if (activeFeature && featureColors[activeFeature]) {
-            plane.material.color.set(featureColors[activeFeature]);
+            plane.traverse((child: any) => {
+              if (child.material) child.material.color.set(featureColors[activeFeature]);
+            });
           } else {
-            plane.material.color.set("#ffffff");
+            plane.traverse((child: any) => {
+              if (child.material) child.material.color.set("#ffffff");
+            });
           }
           plane.position.x += (targetPosition.x - plane.position.x) * 0.05;
           plane.position.y += (targetPosition.y - plane.position.y) * 0.05;
@@ -117,18 +128,22 @@ const ParallaxCursor = ({
         renderer.render(scene, camera);
       };
       animate();
+
       const onWindowResize = () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
       };
       window.addEventListener("resize", onWindowResize);
+
       return () => {
         window.removeEventListener("mousemove", onMouseMove);
         window.removeEventListener("resize", onWindowResize);
       };
     };
+
     const cleanup = initializeCanvas();
+
     return () => {
       cancelAnimationFrame(animationFrameId);
       if (cleanup) cleanup();
@@ -136,10 +151,8 @@ const ParallaxCursor = ({
         mountRef.current.removeChild(renderer.domElement);
       }
     };
-    // Only re-run when activeFeature changes
-    // eslint-disable-next-line
   }, [activeFeature]);
-  // Optionally, listen for hover events on the buttons from parent via onFeatureHover
+
   return (
     <div
       ref={mountRef}
