@@ -753,5 +753,3 @@ const ComprehensiveCareerCoach = () => {
     </div>
   )
 }
-
-export default ComprehensiveCareerCoach
