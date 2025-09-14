@@ -40,11 +40,13 @@ const ParallaxCursor = () => {
     useEffect(() => {
         let animationFrameId: number;
         let renderer: any;
+        let clock: any;
 
         const initializeCanvas = () => {
           if (!mountRef.current || typeof window.THREE === 'undefined') return;
           const THREE = window.THREE;
 
+          clock = new THREE.Clock();
           const scene = new THREE.Scene();
           const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
           renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -87,13 +89,20 @@ const ParallaxCursor = () => {
 
           const animate = () => {
               animationFrameId = requestAnimationFrame(animate);
+              const elapsedTime = clock.getElapsedTime();
 
               if (plane) {
-                plane.position.x += (targetPosition.x - plane.position.x) * 0.05;
-                plane.position.y += (targetPosition.y - plane.position.y) * 0.05;
+                // Smoother follow effect
+                plane.position.x += (targetPosition.x - plane.position.x) * 0.1;
+                plane.position.y += (targetPosition.y - plane.position.y) * 0.1;
 
-                plane.rotation.x = -plane.position.y * 0.2;
-                plane.rotation.y = plane.position.x * 0.2;
+                // Enhanced 3D tilt effect based on mouse position
+                plane.rotation.x = -plane.position.y * 0.3;
+                plane.rotation.y = plane.position.x * 0.3;
+                
+                // Add a subtle "wobble" or "breathing" effect
+                plane.rotation.z = Math.sin(elapsedTime * 1.5) * 0.1;
+                plane.position.z = Math.sin(elapsedTime * 1.5) * 0.1;
               }
 
               renderer.render(scene, camera);
