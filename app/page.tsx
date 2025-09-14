@@ -1,6 +1,83 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
+// ResumeAIButtons component for Resume & Cover Letter Generation section
+const ResumeAIButtons = () => {
+  const [loading, setLoading] = useState(false);
+  const [output, setOutput] = useState('');
+  const [error, setError] = useState('');
+  const controllerRef = useRef<AbortController | null>(null);
+
+  // Helper for streaming output from /api/grok
+  const handleGenerate = async (type: 'resume' | 'cover') => {
+    setLoading(true);
+    setOutput('');
+    setError('');
+    if (controllerRef.current) {
+      controllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    controllerRef.current = controller;
+    try {
+      const res = await fetch('/api/grok', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type }),
+        signal: controller.signal,
+      });
+      if (!res.body) throw new Error('No response body');
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+      let acc = '';
+      while (!done) {
+        const { value, done: d } = await reader.read();
+        if (value) {
+          const chunk = decoder.decode(value);
+          acc += chunk;
+          setOutput(acc);
+        }
+        done = d;
+      }
+      setLoading(false);
+    } catch (err: any) {
+      if (err.name === 'AbortError') return;
+      setError('An error occurred. Please try again.');
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex gap-4 mb-4">
+        <button
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition disabled:opacity-60"
+          onClick={() => handleGenerate('resume')}
+          disabled={loading}
+        >
+          Generate Resume
+        </button>
+        <button
+          className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition disabled:opacity-60"
+          onClick={() => handleGenerate('cover')}
+          disabled={loading}
+        >
+          Generate Cover Letter
+        </button>
+      </div>
+      <div className="relative">
+        <div className="bg-white border rounded p-4 min-h-[96px] font-mono whitespace-pre-wrap text-gray-800 transition-all">
+          {output ? output : (loading ? (
+            <span className="text-blue-500 animate-pulse">Generating... (streaming response)</span>
+          ) : (
+            <span className="text-gray-400">AI output will appear here...</span>
+          ))}
+        </div>
+        {error && <div className="text-red-600 mt-2">{error}</div>}
+      </div>
+    </div>
+  );
+};
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { 
@@ -36,100 +113,207 @@ declare global {
 // 3D Parallax Cursor Component
 const ParallaxCursor = () => {
     const mountRef = useRef<HTMLDivElement>(null);
+    const videoRef = useRef<HTMLVideoElement | null>(null);
+    // To help with cleanup
+    const videoTextureRef = useRef<any>(null);
 
     useEffect(() => {
         let animationFrameId: number;
         let renderer: any;
         let clock: any;
+        let video: HTMLVideoElement | null = null;
+        let fallbackTexture: any = null;
+        let plane: any = null;
+        let scene: any, camera: any;
+        let videoTexture: any = null;
+        let cleanupFns: (() => void)[] = [];
+        let isMounted = true;
 
         const initializeCanvas = () => {
-          if (!mountRef.current || typeof window.THREE === 'undefined') return;
-          const THREE = window.THREE;
+            if (!mountRef.current || typeof window.THREE === 'undefined') return;
+            const THREE = window.THREE;
 
-          clock = new THREE.Clock();
-          const scene = new THREE.Scene();
-          const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-          renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-          renderer.setSize(window.innerWidth, window.innerHeight);
-          renderer.setPixelRatio(window.devicePixelRatio);
-          mountRef.current.appendChild(renderer.domElement);
-          
-          let plane: any;
+            clock = new THREE.Clock();
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            mountRef.current.appendChild(renderer.domElement);
 
-          const textureLoader = new THREE.TextureLoader();
-          textureLoader.load('/image/ai.mp4', 
-            (texture: any) => {
-                const geometry = new THREE.PlaneGeometry(0.7, 0.7);
-                const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, alphaTest: 0.1 });
+            // Prepare geometry
+            const geometry = new THREE.PlaneGeometry(0.7, 0.7);
+
+            // Helper to add plane with given material
+            const addPlane = (material: any) => {
+                if (plane) {
+                    scene.remove(plane);
+                    plane.geometry.dispose();
+                    plane.material.dispose();
+                }
                 plane = new THREE.Mesh(geometry, material);
                 scene.add(plane);
-            },
-            undefined, 
-            (err: any) => { 
-                console.error('An error occurred loading the texture.', err);
-            }
-          );
+            };
 
-          camera.position.z = 2;
+            // --- Video Texture loading ---
+            let videoLoaded = false;
+            video = document.createElement('video');
+            video.src = '/image/ai.mp4';
+            video.crossOrigin = 'anonymous';
+            video.muted = true;
+            video.loop = true;
+            video.autoplay = true;
+            video.playsInline = true;
+            video.setAttribute('playsinline', 'true');
+            video.setAttribute('webkit-playsinline', 'true');
+            video.setAttribute('muted', 'true');
+            // Try to play video when loaded
+            const tryPlay = () => {
+                // Some browsers require play() to be called after load
+                const playPromise = video!.play();
+                if (playPromise && typeof playPromise.then === 'function') {
+                    playPromise.catch(() => {});
+                }
+            };
 
-          const mouse = new THREE.Vector2();
-          const targetPosition = new THREE.Vector3();
+            // If video loads, use as texture
+            const onVideoLoaded = () => {
+                if (!isMounted) return;
+                videoLoaded = true;
+                tryPlay();
+                videoTexture = new THREE.VideoTexture(video);
+                videoTexture.minFilter = THREE.LinearFilter;
+                videoTexture.magFilter = THREE.LinearFilter;
+                videoTexture.format = THREE.RGBAFormat;
+                videoTextureRef.current = videoTexture;
+                const material = new THREE.MeshBasicMaterial({
+                    map: videoTexture,
+                    transparent: true,
+                    alphaTest: 0.1,
+                });
+                addPlane(material);
+            };
 
-          const onMouseMove = (event: MouseEvent) => {
-              mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-              mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            // If video fails, fallback to SVG
+            const onVideoError = () => {
+                if (!isMounted) return;
+                // Fallback to SVG texture
+                const textureLoader = new THREE.TextureLoader();
+                textureLoader.load(
+                  '/image/ai.svg',
+                  (texture: any) => {
+                      fallbackTexture = texture;
+                      const material = new THREE.MeshBasicMaterial({
+                        map: texture,
+                        transparent: true,
+                        alphaTest: 0.1,
+                      });
+                      addPlane(material);
+                  },
+                  undefined,
+                  (err: any) => {
+                      // If fallback fails, just don't show plane
+                      console.error('An error occurred loading the fallback SVG texture.', err);
+                  }
+                );
+            };
 
-              const vector = new THREE.Vector3(mouse.x, mouse.y, 0.5);
-              vector.unproject(camera);
-              const dir = vector.sub(camera.position).normalize();
-              const distance = -camera.position.z / dir.z;
-              targetPosition.copy(camera.position).add(dir.multiplyScalar(distance));
-          };
-          window.addEventListener('mousemove', onMouseMove);
+            // Listen for loadeddata (video ready) or error
+            video.addEventListener('loadeddata', onVideoLoaded, { once: true });
+            video.addEventListener('error', onVideoError, { once: true });
+            // Also try to play in case browser allows
+            tryPlay();
 
-          const animate = () => {
-              animationFrameId = requestAnimationFrame(animate);
-              const elapsedTime = clock.getElapsedTime();
+            // Clean up video event listeners
+            cleanupFns.push(() => {
+                video && video.removeEventListener('loadeddata', onVideoLoaded);
+                video && video.removeEventListener('error', onVideoError);
+            });
 
-              if (plane) {
-                // Smoother follow effect
-                plane.position.x += (targetPosition.x - plane.position.x) * 0.1;
-                plane.position.y += (targetPosition.y - plane.position.y) * 0.1;
+            camera.position.z = 2;
 
-                // Enhanced 3D tilt effect based on mouse position
-                plane.rotation.x = -plane.position.y * 0.3;
-                plane.rotation.y = plane.position.x * 0.3;
-                
-                // Add a subtle "wobble" or "breathing" effect
-                plane.rotation.z = Math.sin(elapsedTime * 1.5) * 0.1;
-                plane.position.z = Math.sin(elapsedTime * 1.5) * 0.1;
-              }
+            const mouse = new THREE.Vector2();
+            const targetPosition = new THREE.Vector3();
 
-              renderer.render(scene, camera);
-          };
-          animate();
+            const onMouseMove = (event: MouseEvent) => {
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-          const onWindowResize = () => {
-              camera.aspect = window.innerWidth / window.innerHeight;
-              camera.updateProjectionMatrix();
-              renderer.setSize(window.innerWidth, window.innerHeight);
-          }
-          window.addEventListener('resize', onWindowResize);
-          
-          return () => {
-              window.removeEventListener('mousemove', onMouseMove);
-              window.removeEventListener('resize', onWindowResize);
-          };
-        }
+                const vector = new THREE.Vector3(mouse.x, mouse.y, 0.5);
+                vector.unproject(camera);
+                const dir = vector.sub(camera.position).normalize();
+                const distance = -camera.position.z / dir.z;
+                targetPosition.copy(camera.position).add(dir.multiplyScalar(distance));
+            };
+            window.addEventListener('mousemove', onMouseMove);
+            cleanupFns.push(() => window.removeEventListener('mousemove', onMouseMove));
 
+            const animate = () => {
+                animationFrameId = requestAnimationFrame(animate);
+                const elapsedTime = clock.getElapsedTime();
+
+                if (plane) {
+                    // Smoother follow effect
+                    plane.position.x += (targetPosition.x - plane.position.x) * 0.1;
+                    plane.position.y += (targetPosition.y - plane.position.y) * 0.1;
+
+                    // Enhanced 3D tilt effect based on mouse position
+                    plane.rotation.x = -plane.position.y * 0.3;
+                    plane.rotation.y = plane.position.x * 0.3;
+
+                    // Add a subtle "wobble" or "breathing" effect
+                    plane.rotation.z = Math.sin(elapsedTime * 1.5) * 0.1;
+                    plane.position.z = Math.sin(elapsedTime * 1.5) * 0.1;
+                }
+
+                renderer.render(scene, camera);
+            };
+            animate();
+
+            const onWindowResize = () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            };
+            window.addEventListener('resize', onWindowResize);
+            cleanupFns.push(() => window.removeEventListener('resize', onWindowResize));
+
+            // Cleanup function for this effect
+            return () => {
+                // Remove listeners
+                cleanupFns.forEach((fn) => fn());
+                // Dispose plane, textures, and renderer
+                if (plane) {
+                    scene.remove(plane);
+                    plane.geometry.dispose();
+                    plane.material.dispose();
+                }
+                if (videoTexture) {
+                    videoTexture.dispose();
+                    videoTextureRef.current = null;
+                }
+                if (fallbackTexture) {
+                    fallbackTexture.dispose && fallbackTexture.dispose();
+                }
+                if (renderer && renderer.domElement && mountRef.current) {
+                    mountRef.current.removeChild(renderer.domElement);
+                }
+                // Stop video
+                if (video) {
+                    video.pause();
+                    video.src = '';
+                    video.load();
+                }
+            };
+        };
+
+        isMounted = true;
         const cleanup = initializeCanvas();
 
         return () => {
+            isMounted = false;
             cancelAnimationFrame(animationFrameId);
             if (cleanup) cleanup();
-            if (mountRef.current && renderer?.domElement) {
-                mountRef.current.removeChild(renderer.domElement);
-            }
         };
     }, []);
 
@@ -287,14 +471,8 @@ const ComprehensiveCareerCoach = () => {
                 Watch how our AI transforms a basic job description into a personalized, 
                 compelling resume that gets noticed by recruiters.
               </p>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                </div>
-                <span className="text-sm text-gray-600">Processing...</span>
-              </div>
+              {/* AI Buttons and Streaming Output */}
+              <ResumeAIButtons />
             </div>
             <div className="bg-white rounded-xl p-6 shadow-lg">
               <div className="space-y-4">

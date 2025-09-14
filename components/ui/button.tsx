@@ -1,4 +1,3 @@
-// components/ui/button.tsx
 import * as React from 'react'
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost'
