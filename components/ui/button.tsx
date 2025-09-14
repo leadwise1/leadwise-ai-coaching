@@ -26,22 +26,31 @@ const sizeClassMap: Record<ButtonSize, string> = {
   lg: 'px-6 py-3 text-lg',
 }
 
+const spinnerSizeMap: Record<ButtonSize, string> = {
+  sm: 'h-3 w-3 border-2',
+  md: 'h-4 w-4 border-2',
+  lg: 'h-5 w-5 border-2',
+}
+
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ size = 'md', variant = 'primary', icon, loading = false, className = '', color, children, ...props }, ref) => {
-    const variantClass = color ? `bg-[${color}] text-white hover:brightness-90` : variantClassMap[variant]
+    const variantClass = color
+      ? `bg-[${color}] text-white hover:brightness-90 transition duration-200 ease-in-out`
+      : variantClassMap[variant]
     const sizeClass = sizeClassMap[size] || sizeClassMap.md
+    const spinnerSizeClass = spinnerSizeMap[size] || spinnerSizeMap.md
 
     return (
       <button
         ref={ref}
-        className={`inline-flex items-center justify-center gap-2 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 ${sizeClass} ${variantClass} ${className} ${loading ? 'opacity-70 cursor-not-allowed' : ''}`.trim()}
+        className={`inline-flex items-center justify-center gap-${loading && icon ? '1' : '2'} rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 ${sizeClass} ${variantClass} ${className} ${loading ? 'opacity-70 cursor-not-allowed' : ''}`.trim()}
         disabled={loading || props.disabled}
         aria-busy={loading}
         {...props}
       >
         {/* Spinner */}
         {loading && (
-          <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"/>
+          <span className={`animate-spin ${spinnerSizeClass} border-white border-t-transparent rounded-full`} />
         )}
         {/* Icon + children */}
         {icon && (

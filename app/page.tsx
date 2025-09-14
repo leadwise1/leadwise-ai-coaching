@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
-// ResumeAIButtons component for Resume & Cover Letter Generation section
-const ResumeAIButtons = () => {
+// ResumeAIButtons logic extracted for Hero Section integration
+const useResumeAI = () => {
   const [loading, setLoading] = useState(false);
   const [output, setOutput] = useState('');
   const [error, setError] = useState('');
@@ -47,37 +47,50 @@ const ResumeAIButtons = () => {
     }
   };
 
-  return (
-    <div>
-      <div className="flex gap-4 mb-4">
-        <button
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition disabled:opacity-60"
-          onClick={() => handleGenerate('resume')}
-          disabled={loading}
-        >
-          Generate Resume
-        </button>
-        <button
-          className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition disabled:opacity-60"
-          onClick={() => handleGenerate('cover')}
-          disabled={loading}
-        >
-          Generate Cover Letter
-        </button>
-      </div>
-      <div className="relative">
-        <div className="bg-white border rounded p-4 min-h-[96px] font-mono whitespace-pre-wrap text-gray-800 transition-all">
-          {output ? output : (loading ? (
-            <span className="text-blue-500 animate-pulse">Generating... (streaming response)</span>
-          ) : (
-            <span className="text-gray-400">AI output will appear here...</span>
-          ))}
-        </div>
-        {error && <div className="text-red-600 mt-2">{error}</div>}
-      </div>
-    </div>
-  );
+  return { loading, output, error, handleGenerate };
 };
+
+// ResumeAIButtons component for Resume & Cover Letter Generation section
+const ResumeAIButtons = ({
+  loading,
+  handleGenerate,
+  output,
+  error,
+}: {
+  loading: boolean,
+  handleGenerate: (type: 'resume' | 'cover') => void,
+  output: string,
+  error: string,
+}) => (
+  <div>
+    <div className="flex gap-4 mb-4">
+      <button
+        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition disabled:opacity-60"
+        onClick={() => handleGenerate('resume')}
+        disabled={loading}
+      >
+        Generate Resume
+      </button>
+      <button
+        className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition disabled:opacity-60"
+        onClick={() => handleGenerate('cover')}
+        disabled={loading}
+      >
+        Generate Cover Letter
+      </button>
+    </div>
+    <div className="relative">
+      <div className="bg-white border rounded p-4 min-h-[96px] font-mono whitespace-pre-wrap text-gray-800 transition-all">
+        {output ? output : (loading ? (
+          <span className="text-blue-500 animate-pulse">Generating... (streaming response)</span>
+        ) : (
+          <span className="text-gray-400">AI output will appear here...</span>
+        ))}
+      </div>
+      {error && <div className="text-red-600 mt-2">{error}</div>}
+    </div>
+  </div>
+);
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { 
@@ -322,7 +335,9 @@ const ParallaxCursor = () => {
 
 
 const ComprehensiveCareerCoach = () => {
-  const [activeTab, setActiveTab] = useState('overview')
+  const [activeTab, setActiveTab] = useState('overview');
+  // Reuse the AI streaming logic for both Hero and ResumeAIButtons
+  const ai = useResumeAI();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
@@ -362,11 +377,21 @@ const ComprehensiveCareerCoach = () => {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="flex flex-col sm:flex-row gap-4 justify-center"
             >
-              <button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg rounded-md transition-all duration-300 flex items-center gap-2 justify-center">
+              {/* Start Your Journey triggers resume AI streaming */}
+              <button
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg rounded-md transition-all duration-300 flex items-center gap-2 justify-center"
+                onClick={() => ai.handleGenerate('resume')}
+                disabled={ai.loading}
+              >
                 <Play className="w-5 h-5" />
                 Start Your Journey
               </button>
-              <button className="border-2 border-blue-300 text-blue-100 hover:bg-blue-800/20 px-8 py-4 text-lg rounded-md transition-all duration-300 flex items-center gap-2 justify-center">
+              {/* Watch Demo triggers cover letter AI streaming */}
+              <button
+                className="border-2 border-blue-300 text-blue-100 hover:bg-blue-800/20 px-8 py-4 text-lg rounded-md transition-all duration-300 flex items-center gap-2 justify-center"
+                onClick={() => ai.handleGenerate('cover')}
+                disabled={ai.loading}
+              >
                 Watch Demo
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -472,7 +497,12 @@ const ComprehensiveCareerCoach = () => {
                 compelling resume that gets noticed by recruiters.
               </p>
               {/* AI Buttons and Streaming Output */}
-              <ResumeAIButtons />
+              <ResumeAIButtons
+                loading={ai.loading}
+                handleGenerate={ai.handleGenerate}
+                output={ai.output}
+                error={ai.error}
+              />
             </div>
             <div className="bg-white rounded-xl p-6 shadow-lg">
               <div className="space-y-4">
