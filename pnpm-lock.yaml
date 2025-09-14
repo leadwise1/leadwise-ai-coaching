@@ -29,9 +29,9 @@ importers:
       '@vercel/analytics':
         specifier: ^1.5.0
         version: 1.5.0(next@14.2.32(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      SVGLoader:
-        specifier: link:three/examples/jsm/loaders/SVGLoader
-        version: link:three/examples/jsm/loaders/SVGLoader
+      mp4Loader:
+        specifier: link:three/examples/jsm/loaders/mp4Loader
+        version: link:three/examples/jsm/loaders/mp4Loader
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1

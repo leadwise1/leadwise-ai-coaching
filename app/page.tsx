@@ -57,7 +57,7 @@ const ParallaxCursor = () => {
           let plane: any;
 
           const textureLoader = new THREE.TextureLoader();
-          textureLoader.load('/image/ai.svg', 
+          textureLoader.load('/image/ai.mp4', 
             (texture: any) => {
                 const geometry = new THREE.PlaneGeometry(0.7, 0.7);
                 const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, alphaTest: 0.1 });
@@ -753,3 +753,5 @@ const ComprehensiveCareerCoach = () => {
     </div>
   )
 }
+
+export default ComprehensiveCareerCoach;
