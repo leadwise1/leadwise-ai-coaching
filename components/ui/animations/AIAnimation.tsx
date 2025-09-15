@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useRef, useState } from 'react'
 import { Sparkles, Brain, Cpu } from 'lucide-react'
 
@@ -111,5 +113,3 @@ export default function AIAnimation({
     </div>
   )
 }
-
-
