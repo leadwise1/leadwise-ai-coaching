@@ -1,50 +1,53 @@
-import * as React from 'react'
+import React from 'react'
 
-export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost'
-export type ButtonSize = 'sm' | 'md' | 'lg'
-
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  size?: ButtonSize
-  variant?: ButtonVariant
+type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  size?: 'sm' | 'md' | 'lg'
+  variant?: 'primary' | 'secondary' | 'tertiary' | 'ai'
   icon?: React.ReactNode
   loading?: boolean
-  className?: string
-  color?: string // optional custom background color
+  color?: string
 }
 
-const variantClassMap: Record<ButtonVariant, string> = {
-  primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
-  secondary: 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500',
-  outline: 'border border-gray-300 text-gray-700 hover:bg-gray-100 focus:ring-gray-300',
-  danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-  ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300',
-}
-
-const sizeClassMap: Record<ButtonSize, string> = {
+const sizeClassMap: Record<string, string> = {
   sm: 'px-3 py-1.5 text-sm',
   md: 'px-4 py-2 text-base',
-  lg: 'px-6 py-3 text-lg',
+  lg: 'px-5 py-3 text-lg',
 }
 
-const spinnerSizeMap: Record<ButtonSize, string> = {
-  sm: 'h-3 w-3 border-2',
-  md: 'h-4 w-4 border-2',
-  lg: 'h-5 w-5 border-2',
+const spinnerSizeMap: Record<string, string> = {
+  sm: 'w-4 h-4 border-2',
+  md: 'w-5 h-5 border-2',
+  lg: 'w-6 h-6 border-4',
+}
+
+const variantClassMap: Record<string, string> = {
+  primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
+  secondary: 'bg-gray-200 text-gray-700 hover:bg-gray-300 focus:ring-gray-400',
+  tertiary: 'bg-transparent text-blue-600 hover:bg-blue-50 focus:ring-blue-500',
+  ai: 'bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white hover:shadow-[0_0_8px_2px_rgba(255,105,180,0.7)] transition-shadow duration-300 ease-in-out',
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ size = 'md', variant = 'primary', icon, loading = false, className = '', color, children, ...props }, ref) => {
     const variantClass = color
       ? `bg-[${color}] text-white hover:brightness-90 transition duration-200 ease-in-out`
-      : variantClassMap[variant]
+      : variant === 'ai'
+        ? variantClassMap.ai
+        : variantClassMap[variant]
+
     const sizeClass = sizeClassMap[size] || sizeClassMap.md
     const spinnerSizeClass = spinnerSizeMap[size] || spinnerSizeMap.md
+
+    const isDisabled = loading || props.disabled
+    const cursorClass = isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'
+
+    const gapValue = loading && icon ? '1' : '2'
 
     return (
       <button
         ref={ref}
-        className={`inline-flex items-center justify-center gap-${loading && icon ? '1' : '2'} rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 ${sizeClass} ${variantClass} ${className} ${loading ? 'opacity-70 cursor-not-allowed' : ''}`.trim()}
-        disabled={loading || props.disabled}
+        className={`inline-flex items-center justify-center gap-${gapValue} rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 ${sizeClass} ${variantClass} ${cursorClass} ${loading ? 'opacity-70' : ''} ${className}`.trim()}
+        disabled={isDisabled}
         aria-busy={loading}
         {...props}
       >

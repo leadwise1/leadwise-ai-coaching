@@ -12,7 +12,7 @@ interface AIAnimationProps {
 export default function AIAnimation({ 
   interactive = true, 
   width = '100%', 
-  height = '500px' 
+  height = '600px' 
 }: AIAnimationProps) {
   const container = useRef<HTMLDivElement>(null)
   const [animationLoaded, setAnimationLoaded] = useState(false)
@@ -35,7 +35,7 @@ export default function AIAnimation({
           autoplay: true,
           path: '/ai-animation.json',
           rendererSettings: {
-            preserveAspectRatio: 'xMidYMid meet',
+            preserveAspectRatio: 'xMidYMid slice',
           },
         })
 
@@ -106,7 +106,7 @@ export default function AIAnimation({
 
   return (
     <div 
-      style={{ width, height, margin: '0 auto', position: 'relative', cursor: interactive ? 'pointer' : 'default' }}
+      style={{ width, height, margin: '0 auto', position: 'relative', cursor: interactive ? 'pointer' : 'default', pointerEvents: 'all' }}
     >
       <div ref={container} style={{ width: '100%', height: '100%' }} />
       {!animationLoaded && <FallbackAnimation />}
