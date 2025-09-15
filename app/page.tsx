@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import Image from "next/image"
 import { motion } from "framer-motion"
-import { 
+import {
   Brain, 
   FileText, 
   Target, 
@@ -61,6 +61,7 @@ const ParallaxCursor = () => {
           let plane: any;
 
           const textureLoader = new THREE.TextureLoader();
+          // Use an absolute path starting with "/" to reference the public directory
           textureLoader.load('/image/ai.svg', 
             (texture: any) => {
                 const geometry = new THREE.PlaneGeometry(0.7, 0.7);
@@ -825,6 +826,3 @@ const ComprehensiveCareerCoach = () => {
     </div>
   )
 }
-
-export default ComprehensiveCareerCoach
-

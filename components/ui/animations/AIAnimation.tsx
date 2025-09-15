@@ -43,12 +43,16 @@ export default function AIAnimation({
         anim.addEventListener('data_failed', () => setShowFallback(true))
 
         if (interactive) {
-          const interactivity = await import('@lottiefiles/lottie-interactivity')
-          interactivity.create({
-            player: anim,
-            mode: 'cursor',
-            actions: [{ type: 'seek', frames: [0, anim.totalFrames || 60] }],
-          })
+          try {
+            const interactivity = await import('@lottiefiles/lottie-interactivity')
+            interactivity.create({
+              player: anim,
+              mode: 'cursor',
+              actions: [{ type: 'seek', frames: [0, anim.totalFrames || 60] }],
+            })
+          } catch (error) {
+            console.warn('Lottie interactivity failed to load:', error)
+          }
         }
       } catch (error) {
         console.warn('Failed to load Lottie animation:', error)
@@ -113,3 +117,4 @@ export default function AIAnimation({
     </div>
   )
 }
+
