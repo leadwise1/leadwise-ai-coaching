@@ -17,19 +17,21 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "API key not found. Please set GEMINI_API_KEY in your environment variables." }, { status: 500 });
     }
     
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:streamGenerateContent?key=${apiKey}&alt=sse`;
+    // Use a stable, generally available model
+    const model = 'gemini-1.5-flash-latest';
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${apiKey}&alt=sse`;
 
+    // Combine system instructions and user input into a single, clear prompt.
+    const prompt = `You are an expert career coach and resume writer. Analyze the user profile against the job description and provide detailed suggestions for improving their resume.
+
+User Profile:
+${userProfile}
+
+Job Description:
+${jobDescription}`;
+    
     const payload = {
-      contents: [{
-        parts: [{
-          text: `User Profile:\n${userProfile}\n\nJob Description:\n${jobDescription}`
-        }]
-      }],
-      systemInstruction: {
-        parts: [{
-          text: "You are an expert career coach and resume writer. Analyze the user profile against the job description and provide detailed suggestions for improving their resume."
-        }]
-      }
+      contents: [{ parts: [{ text: prompt }] }],
     };
 
     const resp = await fetch(API_URL, {
@@ -41,10 +43,10 @@ export async function POST(request: Request) {
     });
 
     if (!resp.ok) {
-      const text = await resp.text();
-      console.error("Gemini API error:", text);
+      const errorBody = await resp.text();
+      console.error("Gemini API error:", errorBody);
       return NextResponse.json(
-        { error: "Failed to fetch Gemini API" },
+        { error: `Failed to fetch from Gemini API: ${errorBody}` },
         { status: resp.status }
       );
     }

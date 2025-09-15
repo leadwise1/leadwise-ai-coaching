@@ -160,8 +160,14 @@ const ResumeGenerator = () => {
             });
 
             if (!response.ok || !response.body) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to get streaming response');
+                // Improved error handling: read the response as text first.
+                const errorText = await response.text();
+                try {
+                    const errorData = JSON.parse(errorText);
+                    throw new Error(errorData.error || 'An unknown error occurred.');
+                } catch (e) {
+                    throw new Error(errorText || 'Failed to get a valid response from the server.');
+                }
             }
 
             const reader = response.body.getReader();
