@@ -143,11 +143,13 @@ const ResumeGenerator = () => {
     const [userProfile, setUserProfile] = useState('');
     const [aiResponse, setAiResponse] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setAiResponse('');
+        setError('');
 
         try {
             const response = await fetch('/api/vertex', {
@@ -157,7 +159,8 @@ const ResumeGenerator = () => {
             });
 
             if (!response.ok || !response.body) {
-                throw new Error('Failed to get streaming response');
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to get streaming response');
             }
 
             const reader = response.body.getReader();
@@ -169,9 +172,10 @@ const ResumeGenerator = () => {
                 const chunk = decoder.decode(value, { stream: true });
                 setAiResponse((prev) => prev + chunk);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error fetching AI response:", error);
-            setAiResponse("Sorry, something went wrong. Please try again.");
+            setError(error.message || "Sorry, something went wrong. Please try again.");
+            setAiResponse('');
         } finally {
             setIsLoading(false);
         }
@@ -229,8 +233,9 @@ const ResumeGenerator = () => {
                 </div>
                 <div className="bg-white rounded-xl p-6 shadow-lg h-full min-h-[300px]">
                     <h4 className="text-lg font-semibold text-gray-800 mb-2">Generated Result:</h4>
+                    {error && <p className="text-red-500 text-sm">{error}</p>}
                     <div className="prose prose-sm max-w-none text-gray-600 whitespace-pre-wrap">
-                        {aiResponse || "Your personalized resume will appear here..."}
+                        {aiResponse || (!isLoading && !error) ? "Your personalized resume will appear here..." : ""}
                     </div>
                 </div>
             </div>
@@ -822,3 +827,4 @@ const ComprehensiveCareerCoach = () => {
 }
 
 export default ComprehensiveCareerCoach
+
