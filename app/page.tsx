@@ -93,6 +93,8 @@ const ResumeAIButtons = ({
 );
 import Image from "next/image"
 import { motion } from "framer-motion"
+import Lottie from 'lottie-react';
+import aiAnimationData from '../public/image/ai-animation.json';
 import { 
   Brain, 
   FileText, 
@@ -123,215 +125,6 @@ declare global {
     }
 }
 
-// 3D Parallax Cursor Component
-const ParallaxCursor = () => {
-    const mountRef = useRef<HTMLDivElement>(null);
-    const videoRef = useRef<HTMLVideoElement | null>(null);
-    // To help with cleanup
-    const videoTextureRef = useRef<any>(null);
-
-    useEffect(() => {
-        let animationFrameId: number;
-        let renderer: any;
-        let clock: any;
-        let video: HTMLVideoElement | null = null;
-        let fallbackTexture: any = null;
-        let plane: any = null;
-        let scene: any, camera: any;
-        let videoTexture: any = null;
-        let cleanupFns: (() => void)[] = [];
-        let isMounted = true;
-
-        const initializeCanvas = () => {
-            if (!mountRef.current || typeof window.THREE === 'undefined') return;
-            const THREE = window.THREE;
-
-            clock = new THREE.Clock();
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
-            mountRef.current.appendChild(renderer.domElement);
-
-            // Prepare geometry
-            const geometry = new THREE.PlaneGeometry(0.7, 0.7);
-
-            // Helper to add plane with given material
-            const addPlane = (material: any) => {
-                if (plane) {
-                    scene.remove(plane);
-                    plane.geometry.dispose();
-                    plane.material.dispose();
-                }
-                plane = new THREE.Mesh(geometry, material);
-                scene.add(plane);
-            };
-
-            // --- Video Texture loading ---
-            let videoLoaded = false;
-            video = document.createElement('video');
-            video.src = '/image/ai.mp4';
-            video.crossOrigin = 'anonymous';
-            video.muted = true;
-            video.loop = true;
-            video.autoplay = true;
-            video.playsInline = true;
-            video.setAttribute('playsinline', 'true');
-            video.setAttribute('webkit-playsinline', 'true');
-            video.setAttribute('muted', 'true');
-            // Try to play video when loaded
-            const tryPlay = () => {
-                // Some browsers require play() to be called after load
-                const playPromise = video!.play();
-                if (playPromise && typeof playPromise.then === 'function') {
-                    playPromise.catch(() => {});
-                }
-            };
-
-            // If video loads, use as texture
-            const onVideoLoaded = () => {
-                if (!isMounted) return;
-                videoLoaded = true;
-                tryPlay();
-                videoTexture = new THREE.VideoTexture(video);
-                videoTexture.minFilter = THREE.LinearFilter;
-                videoTexture.magFilter = THREE.LinearFilter;
-                videoTexture.format = THREE.RGBAFormat;
-                videoTextureRef.current = videoTexture;
-                const material = new THREE.MeshBasicMaterial({
-                    map: videoTexture,
-                    transparent: true,
-                    alphaTest: 0.1,
-                });
-                addPlane(material);
-            };
-
-            // If video fails, fallback to SVG
-            const onVideoError = () => {
-                if (!isMounted) return;
-                // Fallback to SVG texture
-                const textureLoader = new THREE.TextureLoader();
-                textureLoader.load(
-                  '/image/ai.svg',
-                  (texture: any) => {
-                      fallbackTexture = texture;
-                      const material = new THREE.MeshBasicMaterial({
-                        map: texture,
-                        transparent: true,
-                        alphaTest: 0.1,
-                      });
-                      addPlane(material);
-                  },
-                  undefined,
-                  (err: any) => {
-                      // If fallback fails, just don't show plane
-                      console.error('An error occurred loading the fallback SVG texture.', err);
-                  }
-                );
-            };
-
-            // Listen for loadeddata (video ready) or error
-            video.addEventListener('loadeddata', onVideoLoaded, { once: true });
-            video.addEventListener('error', onVideoError, { once: true });
-            // Also try to play in case browser allows
-            tryPlay();
-
-            // Clean up video event listeners
-            cleanupFns.push(() => {
-                video && video.removeEventListener('loadeddata', onVideoLoaded);
-                video && video.removeEventListener('error', onVideoError);
-            });
-
-            camera.position.z = 2;
-
-            const mouse = new THREE.Vector2();
-            const targetPosition = new THREE.Vector3();
-
-            const onMouseMove = (event: MouseEvent) => {
-                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-                const vector = new THREE.Vector3(mouse.x, mouse.y, 0.5);
-                vector.unproject(camera);
-                const dir = vector.sub(camera.position).normalize();
-                const distance = -camera.position.z / dir.z;
-                targetPosition.copy(camera.position).add(dir.multiplyScalar(distance));
-            };
-            window.addEventListener('mousemove', onMouseMove);
-            cleanupFns.push(() => window.removeEventListener('mousemove', onMouseMove));
-
-            const animate = () => {
-                animationFrameId = requestAnimationFrame(animate);
-                const elapsedTime = clock.getElapsedTime();
-
-                if (plane) {
-                    // Smoother follow effect
-                    plane.position.x += (targetPosition.x - plane.position.x) * 0.1;
-                    plane.position.y += (targetPosition.y - plane.position.y) * 0.1;
-
-                    // Enhanced 3D tilt effect based on mouse position
-                    plane.rotation.x = -plane.position.y * 0.3;
-                    plane.rotation.y = plane.position.x * 0.3;
-
-                    // Add a subtle "wobble" or "breathing" effect
-                    plane.rotation.z = Math.sin(elapsedTime * 1.5) * 0.1;
-                    plane.position.z = Math.sin(elapsedTime * 1.5) * 0.1;
-                }
-
-                renderer.render(scene, camera);
-            };
-            animate();
-
-            const onWindowResize = () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            };
-            window.addEventListener('resize', onWindowResize);
-            cleanupFns.push(() => window.removeEventListener('resize', onWindowResize));
-
-            // Cleanup function for this effect
-            return () => {
-                // Remove listeners
-                cleanupFns.forEach((fn) => fn());
-                // Dispose plane, textures, and renderer
-                if (plane) {
-                    scene.remove(plane);
-                    plane.geometry.dispose();
-                    plane.material.dispose();
-                }
-                if (videoTexture) {
-                    videoTexture.dispose();
-                    videoTextureRef.current = null;
-                }
-                if (fallbackTexture) {
-                    fallbackTexture.dispose && fallbackTexture.dispose();
-                }
-                if (renderer && renderer.domElement && mountRef.current) {
-                    mountRef.current.removeChild(renderer.domElement);
-                }
-                // Stop video
-                if (video) {
-                    video.pause();
-                    video.src = '';
-                    video.load();
-                }
-            };
-        };
-
-        isMounted = true;
-        const cleanup = initializeCanvas();
-
-        return () => {
-            isMounted = false;
-            cancelAnimationFrame(animationFrameId);
-            if (cleanup) cleanup();
-        };
-    }, []);
-
-    return <div ref={mountRef} style={{ position: 'fixed', top: 0, left: 0, zIndex: 9999, pointerEvents: 'none' }} />;
-};
 
 
 const ComprehensiveCareerCoach = () => {
@@ -341,7 +134,6 @@ const ComprehensiveCareerCoach = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
-      <ParallaxCursor />
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
         <div className="absolute inset-0">
@@ -402,8 +194,8 @@ const ComprehensiveCareerCoach = () => {
 
       {/* AI Animation */}
       <div className="w-full h-96 flex items-center justify-center my-12">
-        <div className="w-80 h-80 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-2xl">
-          <Brain className="w-32 h-32 text-white animate-pulse" />
+        <div className="w-80 h-80">
+          <Lottie animationData={aiAnimationData} loop={true} />
         </div>
       </div>
 

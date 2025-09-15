@@ -12,7 +12,7 @@ interface AIAnimationProps {
 export default function AIAnimation({ 
   interactive = true, 
   width = '100%', 
-  height = '400px' 
+  height = '500px' 
 }: AIAnimationProps) {
   const container = useRef<HTMLDivElement>(null)
   const [animationLoaded, setAnimationLoaded] = useState(false)
@@ -31,9 +31,12 @@ export default function AIAnimation({
         anim = lottie.loadAnimation({
           container: container.current,
           renderer: 'svg',
-          loop: !interactive,
-          autoplay: !interactive,
+          loop: true,
+          autoplay: true,
           path: '/ai-animation.json',
+          rendererSettings: {
+            preserveAspectRatio: 'xMidYMid meet',
+          },
         })
 
         anim.addEventListener('DOMLoaded', () => setAnimationLoaded(true))
@@ -44,7 +47,7 @@ export default function AIAnimation({
           interactivity.create({
             player: anim,
             mode: 'cursor',
-            actions: [{ type: 'seek', frames: [0, 60] }],
+            actions: [{ type: 'seek', frames: [0, anim.totalFrames || 60] }],
           })
         }
       } catch (error) {
@@ -62,20 +65,20 @@ export default function AIAnimation({
 
   const FallbackAnimation = () => (
     <div 
-      className="flex items-center justify-center relative overflow-hidden"
+      className="flex items-center justify-center relative overflow-hidden cursor-pointer"
       style={{ width, height }}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20" />
       
       <div className="relative z-10 flex items-center justify-center space-x-8">
-        <div className="animate-bounce"><Brain className="w-12 h-12 text-blue-500" /></div>
-        <div className="animate-bounce"><Sparkles className="w-16 h-16 text-purple-500" /></div>
-        <div className="animate-bounce"><Cpu className="w-12 h-12 text-blue-500" /></div>
+        <div className="animate-bounce"><Brain className="w-16 h-16 text-blue-500" /></div>
+        <div className="animate-bounce"><Sparkles className="w-24 h-24 text-purple-500" /></div>
+        <div className="animate-bounce"><Cpu className="w-16 h-16 text-blue-500" /></div>
       </div>
 
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-        <div className="w-32 h-32 border-4 border-blue-200 rounded-full animate-ping" />
-        <div className="absolute top-4 left-4 w-24 h-24 border-4 border-purple-200 rounded-full animate-ping" />
+        <div className="w-40 h-40 border-4 border-blue-200 rounded-full animate-ping" />
+        <div className="absolute top-4 left-4 w-32 h-32 border-4 border-purple-200 rounded-full animate-ping" />
       </div>
 
       {[...Array(6)].map((_, i) => (
@@ -102,7 +105,9 @@ export default function AIAnimation({
   if (showFallback) return <FallbackAnimation />
 
   return (
-    <div style={{ width, height, margin: '0 auto', position: 'relative' }}>
+    <div 
+      style={{ width, height, margin: '0 auto', position: 'relative', cursor: interactive ? 'pointer' : 'default' }}
+    >
       <div ref={container} style={{ width: '100%', height: '100%' }} />
       {!animationLoaded && <FallbackAnimation />}
     </div>
